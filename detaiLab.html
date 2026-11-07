@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Đề tài Lab Load Balancing - Failover - Firewall - Database</title>
+    <style>
+        body {
+            font-family: "Times New Roman", Arial, sans-serif;
+            line-height: 1.6;
+            margin: 40px;
+            color: #111;
+        }
+        h1 {
+            text-align: center;
+            font-size: 22px;
+            text-transform: uppercase;
+        }
+        h2 {
+            font-size: 18px;
+            margin-top: 25px;
+        }
+        h3 {
+            font-size: 16px;
+            margin-top: 18px;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 12px 0;
+        }
+        th, td {
+            border: 1px solid #000;
+            padding: 8px;
+            text-align: left;
+            vertical-align: top;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        pre {
+            background: #f7f7f7;
+            padding: 10px;
+            border: 1px solid #ddd;
+            overflow-x: auto;
+        }
+        .center {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<h1>ĐỀ TÀI LAB AN NINH THÔNG TIN</h1>
+<p class="center"><strong>
+Xây dựng hệ thống cân bằng tải và dự phòng cho dịch vụ ứng dụng, cơ sở dữ liệu và tường lửa nhằm nâng cao tính sẵn sàng và an toàn dịch vụ
+</strong></p>
+
+<h2>1. Lý do chọn đề tài</h2>
+<p>
+Trong các hệ thống dịch vụ trực tuyến hiện nay, yêu cầu về tính liên tục, ổn định và an toàn ngày càng trở nên quan trọng. Nếu một thành phần trong hệ thống gặp sự cố như máy chủ web bị lỗi, cơ sở dữ liệu ngừng hoạt động hoặc tường lửa bị hỏng, toàn bộ dịch vụ có thể bị gián đoạn. Điều này ảnh hưởng trực tiếp đến người dùng và có thể gây mất an toàn thông tin.
+</p>
+<p>
+Để giảm thiểu rủi ro, các hệ thống thực tế thường sử dụng cơ chế cân bằng tải và dự phòng. Cân bằng tải giúp phân phối yêu cầu của người dùng đến nhiều máy chủ khác nhau, trong khi cơ chế failover cho phép hệ thống tự động chuyển sang thành phần dự phòng khi có sự cố. Bên cạnh đó, tường lửa là lớp bảo vệ quan trọng, cũng cần được thiết kế dự phòng để tránh điểm lỗi đơn.
+</p>
+<p>
+Vì vậy, đề tài này được xây dựng nhằm mô phỏng một hệ thống hoàn chỉnh gồm firewall, load balancer, web server và database có khả năng chịu lỗi, đồng thời áp dụng các nguyên tắc bảo mật cơ bản trong an ninh thông tin.
+</p>
+
+<h2>2. Mục tiêu đề tài</h2>
+
+<h3>2.1. Mục tiêu tổng quát</h3>
+<p>
+Xây dựng và vận hành được hệ thống lab có khả năng cân bằng tải, dự phòng cho dịch vụ ứng dụng, cơ sở dữ liệu và tường lửa. Hệ thống cần đảm bảo hoạt động ổn định khi một thành phần gặp sự cố, đồng thời đáp ứng các yêu cầu cơ bản về bảo mật.
+</p>
+
+<h3>2.2. Mục tiêu cụ thể</h3>
+<ul>
+    <li>Hiểu được mô hình mạng nhiều vùng: WAN, DMZ, LAN/Database.</li>
+    <li>Biết cấu hình firewall để kiểm soát truy cập giữa các vùng mạng.</li>
+    <li>Triển khai load balancer để phân phối tải đến nhiều web server.</li>
+    <li>Triển khai cơ chế failover cho load balancer hoặc firewall.</li>
+    <li>Cấu hình database replication giữa primary và replica.</li>
+    <li>Kiểm thử hệ thống khi một dịch vụ hoặc một máy chủ gặp sự cố.</li>
+    <li>Nắm được các nguyên tắc bảo mật cơ bản: firewall rule, phân tách mạng, log, hardening dịch vụ.</li>
+</ul>
+
+<h2>3. Phạm vi thực hiện</h2>
+
+<h3>3.1. Phạm vi nên làm</h3>
+<ul>
+    <li>Xây dựng lab trên máy ảo bằng VirtualBox, VMware hoặc Proxmox.</li>
+    <li>Triển khai firewall pfSense hoặc OPNsense.</li>
+    <li>Triển khai load balancer bằng HAProxy hoặc Nginx.</li>
+    <li>Triển khai 2 web server.</li>
+    <li>Triển khai 2 node database theo mô hình primary - replica.</li>
+    <li>Cấu hình firewall rule, NAT và kiểm soát truy cập.</li>
+    <li>Kiểm thử load balancing, failover web server, replication database.</li>
+    <li>Thu thập log và giám sát trạng thái cơ bản.</li>
+</ul>
+
+<h3>3.2. Phạm vi mở rộng</h3>
+<ul>
+    <li>Failover load balancer bằng Keepalived.</li>
+    <li>Failover firewall bằng pfSense CARP hoặc OPNsense CARP.</li>
+    <li>Giám sát bằng Prometheus, Grafana hoặc Zabbix.</li>
+    <li>Bảo mật nâng cao bằng Fail2Ban, Suricata hoặc WAF.</li>
+    <li>Triển khai HTTPS bằng chứng chỉ self-signed hoặc Let’s Encrypt.</li>
+</ul>
+
+<h2>4. Kiến trúc hệ thống đề xuất</h2>
+<pre>
+                        Internet
+                           |
+                     [ Firewall ]
+                   pfSense/OPNsense
+                    Active/Passive
+                           |
+                        DMZ
+                           |
+                  [ Load Balancer ]
+                    HAProxy/Nginx
+                    + Keepalived
+                           |
+             -----------------------------
+             |                           |
+        [ Web Server 1 ]           [ Web Server 2 ]
+             |                           |
+             -----------------------------
+                           |
+                    [ Database Layer ]
+                  Primary - Replica
+                  MySQL/PostgreSQL
+</pre>
+
+<h2>5. Thành phần hệ thống</h2>
+
+<table>
+    <tr>
+        <th>Thành phần</th>
+        <th>Công nghệ đề xuất</th>
+        <th>Chức năng chính</th>
+    </tr>
+    <tr>
+        <td>Firewall</td>
+        <td>pfSense, OPNsense, Linux Firewall</td>
+        <td>Kiểm soát truy cập, NAT, phân tách mạng, ghi log</td>
+    </tr>
+    <tr>
+        <td>Load Balancer</td>
+        <td>HAProxy, Nginx</td>
+        <td>Phân phối request đến các web server</td>
+    </tr>
+    <tr>
+        <td>Failover Load Balancer</td>
+        <td>Keepalived</td>
+        <td>Dự phòng load balancer bằng Virtual IP</td>
+    </tr>
+    <tr>
+        <td>Web Server</td>
+        <td>Apache, Nginx</td>
+        <td>Xử lý request và kết nối database</td>
+    </tr>
+    <tr>
+        <td>Database</td>
+        <td>MariaDB, MySQL, PostgreSQL</td>
+        <td>Lưu trữ dữ liệu, replication, failover</td>
+    </tr>
+    <tr>
+        <td>Monitoring</td>
+        <td>Prometheus, Grafana, Zabbix</td>
+        <td>Giám sát trạng thái dịch vụ và hiệu năng</td>
+    </tr>
+</table>
+
+<h2>6. Sơ đồ mạng và địa chỉ IP mẫu</h2>
+
+<table>
+    <tr>
+        <th>Vùng mạng</th>
+        <th>Mục đích</th>
+        <th>Dải IP</th>
+    </tr>
+    <tr>
+        <td>WAN</td>
+        <td>Mạng ngoài / Internet</td>
+        <td>10.0.0.0/24</td>
+    </tr>
+    <tr>
+        <td>DMZ</td>
+        <td>Firewall - Load Balancer - Web Server</td>
+        <td>192.168.20.0/24</td>
+    </tr>
+    <tr>
+        <td>LAN/DB</td>
+        <td>Database và quản trị</td>
+        <td>192.168.30.0/24</td>
+    </tr>
+</table>
+
+<h3>Bảng địa chỉ IP mẫu</h3>
+
+<table>
+    <tr>
+        <th>Máy</th>
+        <th>Địa chỉ IP</th>
+        <th>Ghi chú</th>
+    </tr>
+    <tr>
+        <td>WAN Client</td>
+        <td>10.0.0.10</td>
+        <td>Máy test từ mạng ngoài</td>
+    </tr>
+    <tr>
+        <td>Firewall WAN</td>
+        <td>10.0.0.1</td>
+        <td>Cổng WAN của firewall</td>
+    </tr>
+    <tr>
+        <td>Firewall DMZ</td>
+        <td>192.168.20.1</td>
+        <td>Cổng DMZ của firewall</td>
+    </tr>
+    <tr>
+        <td>Firewall LAN</td>
+        <td>192.168.30.1</td>
+        <td>Cổng LAN/DB của firewall</td>
+    </tr>
+    <tr>
+        <td>Load Balancer VIP</td>
+        <td>192.168.20.100</td>
+        <td>IP ảo truy cập dịch vụ</td>
+    </tr>
+    <tr>
+        <td>Load Balancer 1</td>
+        <td>192.168.20.10</td>
+        <td>Node LB 1</td>
+    </tr>
+    <tr>
+        <td>Load Balancer 2</td>
+        <td>192.168.20.11</td>
+        <td>Node LB 2</td>
+    </tr>
+    <tr>
+        <td>Web Server 1</td>
+        <td>192.168.20.21</td>
+        <td>Web node 1</td>
+    </tr>
+    <tr>
+        <td>Web Server 2</td>
+        <td>192.168.20.22</td>
+        <td>Web node 2</td>
+    </tr>
+    <tr>
+        <td>Database Primary</td>
+        <td>192.168.30.11</td>
+        <td>Database chính</td>
+    </tr>
+    <tr>
+        <td>Database Replica</td>
+        <td>192.168.30.12</td>
+        <td>Database dự phòng</td>
+    </tr>
+</table>
+
+<h2>7. Yêu cầu chức năng</h2>
+
+<h3>7.1. Firewall</h3>
+<ul>
+    <li>Cho phép truy cập HTTP/HTTPS từ WAN vào load balancer.</li>
+    <li>Chặn truy cập trực tiếp từ WAN vào database.</li>
+    <li>Cho phép web server truy cập database theo port cần thiết.</li>
+    <li>Ghi log lưu lượng bị chặn và được phép.</li>
+    <li>Hỗ trợ NAT/port forwarding.</li>
+</ul>
+
+<h3>7.2. Load Balancer</h3>
+<ul>
+    <li>Phân phối request đến ít nhất 2 web server.</li>
+    <li>Kiểm tra trạng thái web server bằng health check.</li>
+    <li>Tự động loại bỏ server lỗi khỏi pool.</li>
+    <li>Có thể cấu hình Virtual IP để client truy cập một địa chỉ duy nhất.</li>
+</ul>
+
+<h3>7.3. Web Server</h3>
+<ul>
+    <li>Hoạt động tối thiểu trên 2 node.</li>
+    <li>Có thể kết nối database.</li>
+    <li>Hiển thị thông tin nhận dạng server để kiểm tra load balancing.</li>
+    <li>Có log truy cập.</li>
+</ul>
+
+<h3>7.4. Database</h3>
+<ul>
+    <li>Có ít nhất 2 node: primary và replica.</li>
+    <li>Dữ liệu được đồng bộ từ primary sang replica.</li>
+    <li>Kiểm tra được dữ liệu trên replica sau khi ghi trên primary.</li>
+    <li>Có thể mô phỏng failover bằng cách tắt primary và kiểm tra replica.</li>
+</ul>
+
+<h2>8. Yêu cầu bảo mật</h2>
+<ul>
+    <li>Chỉ mở các port cần thiết.</li>
+    <li>Phân tách mạng WAN, DMZ và LAN/Database.</li>
+    <li>Không cho phép truy cập trực tiếp từ WAN vào database.</li>
+    <li>Giới hạn quyền truy cập SSH.</li>
+    <li>Sử dụng mật khẩu mạnh hoặc SSH key.</li>
+    <li>Cấu hình firewall theo nguyên tắc tối thiểu.</li>
+    <li>Ghi log hệ thống, log firewall và log dịch vụ.</li>
+</ul>
+
+<h2>9. Cấu hình firewall đề xuất</h2>
+
+<table>
+    <tr>
+        <th>Nguồn</th>
+        <th>Đích</th>
+        <th>Port</th>
+        <th>Hành động</th>
+    </tr>
+    <tr>
+        <td>WAN</td>
+        <td>Load Balancer</td>
+        <td>80/TCP</td>
+        <td>Allow</td>
+    </tr>
+    <tr>
+        <td>WAN</td>
+        <td>Load Balancer</td>
+        <td>443/TCP</td>
+        <td>Allow</td>
+    </tr>
+    <tr>
+        <td>WAN</td>
+        <td>Database</td>
+        <td>3306/TCP hoặc 5432/TCP</td>
+        <td>Deny</td>
+    </tr>
+    <tr>
+        <td>Web Server</td>
+        <td>Database</td>
+        <td>3306/TCP hoặc 5432/TCP</td>
+        <td>Allow</td>
+    </tr>
+    <tr>
+        <td>WAN</td>
+        <td>Tất cả server</td>
+        <td>22/TCP</td>
+        <td>Deny</td>
+    </tr>
+    <tr>
+        <td>LAN quản trị</td>
+        <td>Firewall GUI</td>
+        <td>443/TCP</td>
+        <td>Allow</td>
+    </tr>
+</table>
+
+<h2>10. Cấu hình HAProxy mẫu</h2>
+<pre>
+global
+    log /dev/log local0
+    log /dev/log local1 notice
+    maxconn 4096
+
+defaults
+    log global
+    mode http
+    option httplog
+    option dontlognull
+    timeout connect 5s
+    timeout client 30s
+    timeout server 30s
+
+frontend http_front
+    bind *:80
+    default_backend web_backend
+
+backend web_backend
+    balance roundrobin
+    option httpchk GET /
+    server web1 192.168.20.21:80 check
+    server web2 192.168.20.22:80 check
+
+listen stats
+    bind *:8404
+    stats enable
+    stats uri /stats
+    stats refresh 10s
+</pre>
+
+<h2>11. Kịch bản kiểm thử hệ thống</h2>
+
+<h3>Kịch bản 1: Kiểm tra load balancing web server</h3>
+<p><strong>Mục tiêu:</strong> Chứng minh request được phân phối đến nhiều web server.</p>
+<p><strong>Các bước:</strong></p>
+<ol>
+    <li>Client truy cập địa chỉ VIP hoặc IP load balancer.</li>
+    <li>Tải lại trang nhiều lần.</li>
+    <li>Quan sát kết quả hiển thị Web Server 1 hoặc Web Server 2.</li>
+</ol>
+<p><strong>Kết quả mong đợi:</strong> Request được phân phối luân phiên hoặc theo thuật toán đã cấu hình.</p>
+
+<h3>Kịch bản 2: Kiểm tra web server lỗi</h3>
+<p><strong>Mục tiêu:</strong> Chứng minh load balancer tự loại bỏ server lỗi.</p>
+<p><strong>Các bước:</strong></p>
+<ol>
+    <li>Tắt dịch vụ web trên Web Server 1.</li>
+    <li>Truy cập lại dịch vụ.</li>
+    <li>Kiểm tra trạng thái trong HAProxy stats.</li>
+</ol>
+<p><strong>Kết quả mong đợi:</strong> Dịch vụ vẫn hoạt động, request chỉ được gửi sang Web Server 2.</p>
+
+<h3>Kịch bản 3: Kiểm tra replication database</h3>
+<p><strong>Mục tiêu:</strong> Chứng minh dữ liệu từ primary được đồng bộ sang replica.</p>
+<p><strong>Các bước:</strong></p>
+<ol>
+    <li>Tạo database và bảng trên primary.</li>
+    <li>Insert dữ liệu vào primary.</li>
+    <li>Kiểm tra dữ liệu trên replica.</li>
+</ol>
+<p><strong>Kết quả mong đợi:</strong> Replica có dữ liệu giống primary.</p>
+
+<h3>Kịch bản 4: Kiểm tra database primary lỗi</h3>
+<p><strong>Mục tiêu:</strong> Mô phỏng sự cố database primary.</p>
+<p><strong>Các bước:</strong></p>
+<ol>
+    <li>Tắt dịch vụ database trên primary.</li>
+    <li>Kiểm tra ứng dụng có còn đọc được dữ liệu từ replica không.</li>
+    <li>Nếu có cấu hình failover, promote replica thành primary.</li>
+</ol>
+<p><strong>Kết quả mong đợi:</strong> Replica vẫn có dữ liệu và có thể được sử dụng để tiếp tục vận hành.</p>
+
+<h3>Kịch bản 5: Kiểm tra bảo mật bằng firewall rule</h3>
+<p><strong>Mục tiêu:</strong> Chứng minh hệ thống chặn truy cập trái phép.</p>
+<p><strong>Các bước:</strong></p>
+<ol>
+    <li>Từ client WAN, thử truy cập trực tiếp database.</li>
+    <li>Kiểm tra kết quả.</li>
+    <li>Xem log firewall.</li>
+</ol>
+<p><strong>Kết quả mong đợi:</strong> Không truy cập được database từ WAN, firewall ghi log truy cập bị chặn.</p>
+
+<h2>12. Kế hoạch thực hiện</h2>
+
+<table>
+    <tr>
+        <th>Thời gian</th>
+        <th>Nội dung</th>
+    </tr>
+    <tr>
+        <td>Tuần 1</td>
+        <td>Tìm hiểu yêu cầu, thiết kế mô hình, chuẩn bị máy ảo</td>
+    </tr>
+    <tr>
+        <td>Tuần 2</td>
+        <td>Cài đặt firewall, cấu hình WAN/DMZ/LAN, NAT và firewall rule</td>
+    </tr>
+    <tr>
+        <td>Tuần 3</td>
+        <td>Cài đặt load balancer, web server, kiểm tra load balancing</td>
+    </tr>
+    <tr>
+        <td>Tuần 4</td>
+        <td>Cài đặt database replication, kiểm thử failover, viết báo cáo</td>
+    </tr>
+</table>
+
+<h2>13. Tiêu chí nghiệm thu</h2>
+
+<table>
+    <tr>
+        <th>Tiêu chí</th>
+        <th>Yêu cầu đạt</th>
+    </tr>
+    <tr>
+        <td>Client truy cập được dịch vụ qua firewall</td>
+        <td>Có</td>
+    </tr>
+    <tr>
+        <td>Load balancer phân phối request đến 2 web server</td>
+        <td>Có</td>
+    </tr>
+    <tr>
+        <td>Khi một web server tắt, dịch vụ vẫn hoạt động</td>
+        <td>Có</td>
+    </tr>
+    <tr>
+        <td>Database replica đồng bộ dữ liệu từ primary</td>
+        <td>Có</td>
+    </tr>
+    <tr>
+        <td>Khi primary tắt, replica vẫn có dữ liệu</td>
+        <td>Có</td>
+    </tr>
+    <tr>
+        <td>Firewall chặn truy cập trái phép từ WAN vào database</td>
+        <td>Có</td>
+    </tr>
+    <tr>
+        <td>Có log truy cập và log hệ thống</td>
+        <td>Có</td>
+    </tr>
+    <tr>
+        <td>Có tài liệu cấu hình và kịch bản kiểm thử</td>
+        <td>Có</td>
+    </tr>
+</table>
+
+<h2>14. Hướng phát triển</h2>
+<ul>
+    <li>Triển khai HTTPS với chứng chỉ số.</li>
+    <li>Thêm WAF để bảo vệ ứng dụng web.</li>
+    <li>Thêm Suricata/Snort làm IDS/IPS.</li>
+    <li>Dùng Patroni hoặc ProxySQL để failover database tự động hơn.</li>
+    <li>Thêm hệ thống giám sát tập trung bằng Prometheus và Grafana.</li>
+    <li>Thêm backup và restore database.</li>
+    <li>Mô phỏng tấn công DDoS và kiểm thử khả năng chịu tải.</li>
+</ul>
+
+<h2>15. Kết luận</h2>
+<p>
+Đề tài giúp xây dựng một hệ thống lab hoàn chỉnh mô phỏng kiến trúc dịch vụ có khả năng chịu lỗi và bảo mật. Hệ thống bao gồm firewall kiểm soát truy cập giữa các vùng mạng, load balancer phân phối tải đến các máy chủ ứng dụng, cụm web server xử lý yêu cầu người dùng và cụm cơ sở dữ liệu có cơ chế đồng bộ, dự phòng.
+</p>
+<p>
+Thông qua quá trình triển khai, người thực hiện có thể nắm vững các kiến thức về mạng máy tính, quản trị hệ thống, cấu hình dịch vụ, cân bằng tải, failover, replication và các biện pháp bảo mật liên quan. Đây là nền tảng quan trọng đối với sinh viên ngành An ninh thông tin trong việc tiếp cận các hệ thống thực tế có yêu cầu cao về tính sẵn sàng và an toàn dịch vụ.
+</p>
+
+</body>
+</html>
