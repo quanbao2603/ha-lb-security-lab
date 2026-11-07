@@ -1,0 +1,19 @@
+# Secrets and local state
+.env
+*.key
+*.pem
+*.p12
+*.ovpn
+*tailscale-state*
+*.tfstate
+
+# VMware generated files
+*.lck/
+*.vmem
+*.vmsn
+*.vmss
+*.nvram
+*.vmx.lck/
+
+# Local evidence that may contain credentials
+.evidence-private/

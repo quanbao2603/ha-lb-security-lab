@@ -1,0 +1,10 @@
+project: shared-cybersecurity-ha-lab
+version: 1.0.0
+platform: VMware Workstation
+connectivity: Tailscale via two Linux transit VMs
+owners:
+  - Quan Bao
+  - Minh Hung
+lab_duration: 7 days
+target_difficulty: 4/5
+secrets_policy: never commit tokens, passwords, private keys, or state files
