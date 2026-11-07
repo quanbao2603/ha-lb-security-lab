@@ -1,0 +1,25 @@
+---
+# Pin version de hai nguoi trung moi truong.
+# Kiem tra: ansible --version  (ansible-core)  va  ansible-galaxy collection list
+# Cai dat:  ansible-galaxy collection install -r requirements.yml
+
+collections:
+  # chrony, sysctl, authorized_key, mount, firewall (nftables cho node Linux)
+  - name: ansible.posix
+    version: ">=1.5.4"
+
+  # redis, postgresql_*, loki, keepalived, haproxy, cron, htpasswd
+  - name: community.general
+    version: ">=8.2.0"
+
+  # tao CSR, quan ly x509, kiem tra cert truoc khi rotate
+  - name: community.crypto
+    version: ">=2.16.0"
+
+  # validate (cho policy/schema), ipaddr, update_fact (doc API OPNsense ve JSON)
+  - name: ansible.utils
+    version: ">=2.11.0"
+
+# OPNsense khong co collection chinh thuc: role opnsense_policy goi REST API
+# bang ansible.builtin.uri. Vi vay PHIEN BAN OPNsense la hop dong, pin no trong
+# docs/interfaces.md va khoa cung mot ban phat hanh cho ca opns1 lan opns2.

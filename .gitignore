@@ -1,0 +1,70 @@
+# ===== Bao bi mat / du lieu nhay cam =====
+*.key
+*.pem.key
+*.p12
+*.pfx
+*.kdbx
+*.jks
+
+# Cert phat hanh chi de chay thuc nghiem; chi CA public + CSR duoc commit
+certs/issued/
+certs/private/
+!certs/*.crt
+!certs/**/*.csr
+
+# Mat khau Ansible Vault (file moi, KHONG phai noi dung da encrypt)
+.vault_pass
+*.vault_pass
+ansible/vault/*.key
+
+# Thu muc chua secret nguyen van - co y loai hoan toan khoi Git
+secrets/
+
+# ===== Backup / xuat cau hiet thiet bi bien =====
+# config.xml cua OPNsense chua hash mat khau + khoa CARP
+config.xml
+config-backup/
+*.xml.bak
+opnsense-config/
+
+# ===== San phum Ansible =====
+*.retry
+.molecule_cache/
+
+# ===== San phum VMware =====
+*.vmdk
+*.vmx
+*.vmx.lck/
+*.nvram
+*.vmem
+*.snap
+*.raw
+*.iso
+
+# ===== Bang chung sinh tu (chi commit evidence/raw) =====
+evidence/derived/
+evidence/tmp/
+
+# ===== Video: dung Git LFS hoac de ngoai Drive =====
+report/*.mp4
+report/*.mkv
+report/*.avi
+
+# ===== Moi truong dev =====
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+node_modules/
+
+# ===== Editor / OS =====
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
