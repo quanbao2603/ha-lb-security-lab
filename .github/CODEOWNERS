@@ -1,0 +1,24 @@
+# CODEOWNERS — GitHub tự request review người phụ trách khi PR đụng vào thư mục.
+# File này chỉ có hiệu lực trên nhánh default (main). Muốn bắt buộc review trước
+# khi merge thì bật thêm branch protection rule "Require review from Code Owners".
+
+# --- Hùng (@SUGirlBae): hạ tầng, triển khai, đo đạc ---
+/infra/      @SUGirlBae
+/ansible/    @SUGirlBae
+/inventory/  @SUGirlBae
+/scripts/    @SUGirlBae
+/evidence/   @SUGirlBae
+/certs/      @SUGirlBae
+
+# --- Bảo (@quanbao2603): chính sách, tấn công, tài liệu, báo cáo ---
+/policy/    @quanbao2603
+/attacks/   @quanbao2603
+/docs/      @quanbao2603
+/report/    @quanbao2603
+
+# --- Phần dùng chung: cần cả hai review ---
+/.github/         @SUGirlBae @quanbao2603
+/Makefile         @SUGirlBae @quanbao2603
+/README.md        @SUGirlBae @quanbao2603
+/ansible.cfg      @SUGirlBae @quanbao2603
+/requirements.yml @SUGirlBae @quanbao2603

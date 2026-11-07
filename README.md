@@ -84,6 +84,25 @@ certs/         chi ca.crt + *.csr   ·   secrets/ hoan toan ngoai Git
 report/        bao cao, slide (video qua Git LFS hoac Drive)
 ```
 
+**Phân công thư mục** — mỗi thư mục có một người chịu trách nhiệm chính; muốn sửa
+phần của người khác thì mở PR để người đó review. Khai báo trùng khớp trong
+[.github/CODEOWNERS](.github/CODEOWNERS) để GitHub tự request review.
+
+| Thư mục | Phụ trách | Nội dung |
+|---|---|---|
+| `infra/` | Hùng | vmnet plan, script tạo/điều khiển VM trên máy Hùng |
+| `ansible/` | Hùng | site.yml, playbook, roles, vault |
+| `inventory/` | Hùng | lab.ini + group_vars |
+| `scripts/` | Hùng | verify_access, chaos, evidence |
+| `evidence/` | Hùng | raw/ (CSV commit); derived/ gitignore |
+| `certs/` | Hùng | chỉ ca.crt + *.csr; khoá riêng ngoài Git |
+| `policy/` | Bảo | nguồn chân lý firewall; Hùng chỉ chạy `make apply` |
+| `attacks/` | Bảo | payload + expected.json (red plane) |
+| `docs/` | Bảo | hợp đồng, kiến trúc, decisions, runbook, MITRE |
+| `report/` | Bảo | báo cáo, slide |
+| `.github/`, file gốc (`Makefile`, `README.md`, `ansible.cfg`…) | Cả hai | thay đổi cần cả hai đồng ý |
+| `secrets/` | — | hoàn toàn ngoài Git, không bao giờ commit |
+
 ## 5. Quy trình làm việc chung
 
 - Nhánh `h/<topic>` (Hùng) và `b/<topic>` (Bảo); `main` chỉ nhận PR khi `make check` xanh.
