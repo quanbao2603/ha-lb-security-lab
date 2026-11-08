@@ -1,0 +1,15 @@
+# /etc/network/interfaces — Transit-A
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# The primary network interface (NAT)
+allow-hotplug ens33
+iface ens33 inet dhcp
+
+# Lab network (VMnet2)
+auto ens37
+iface ens37 inet static
+    address 172.20.21.5/24
