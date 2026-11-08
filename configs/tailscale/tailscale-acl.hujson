@@ -1,0 +1,117 @@
+// ============================================================================
+// Tailscale ACL Policy Mẫu — Shared Cybersecurity HA Lab (Quan Bảo & Minh Hùng)
+// Định dạng: HuJSON (JSON with comments & trailing commas)
+// Nguyên tắc bảo mật:
+//   1. Giới hạn chặt kết nối giữa tag:transit-a và tag:transit-b.
+//   2. KHÔNG mở toàn bộ mạng DB (172.20.40.0/24) cho các thiết bị khác trong tailnet.
+//   3. Lưu lượng ứng dụng vào DB vẫn phải đi qua Transit-B -> Firewall-A (172.20.20.1).
+// ponytail: Dùng static ACL + IP/port cụ thể cho lab 2 thành viên; nâng cấp lên Tailscale Grants + device posture khi mở rộng node.
+// ============================================================================
+{
+  "tagOwners": {
+    "tag:lab-admin": [
+      "autogroup:admin",
+    ],
+    "tag:transit-a": [
+      "autogroup:admin",
+    ],
+    "tag:transit-b": [
+      "autogroup:admin",
+    ],
+  },
+
+  // Không cấu hình autoApprovers cho 172.20.40.0/24 và 172.20.50.0/24:
+  // Bắt buộc kiểm tra và phê duyệt thủ công trên Tailscale Admin Console.
+  "autoApprovers": {
+    "routes": {
+      "172.20.20.0/24": [
+        "tag:transit-a",
+        "tag:transit-b",
+      ],
+    },
+  },
+
+  "acls": [
+    // 1. Giao tiếp vùng DMZ (172.20.20.0/24) giữa tag:transit-a (172.20.20.5) và tag:transit-b (172.20.20.6)
+    {
+      "action": "accept",
+      "src": [
+        "tag:transit-a",
+        "tag:transit-b",
+      ],
+      "dst": [
+        "tag:transit-a:80,443",
+        "tag:transit-b:80,443",
+        "172.20.20.0/24:80,443",
+      ],
+    },
+
+    // 2. Lưu lượng Web/App từ Site A (qua tag:transit-a) tới đúng IP DB-Primary (.11) và DB-Replica (.12)
+    // chỉ trên port DB (5432/PostgreSQL, 3306/MySQL-MariaDB).
+    // Tuyệt đối KHÔNG mở 172.20.40.0/24:* và KHÔNG cho phép thiết bị khác trong tailnet truy cập mạng DB.
+    {
+      "action": "accept",
+      "src": [
+        "tag:transit-a",
+      ],
+      "dst": [
+        "172.20.40.11:5432,3306",
+        "172.20.40.12:5432,3306",
+      ],
+    },
+
+    // 3. Cho phép chuyển tiếp log Syslog từ tag:transit-a về Log-Monitor (172.20.50.10) tại Site B
+    {
+      "action": "accept",
+      "src": [
+        "tag:transit-a",
+        "tag:transit-b",
+      ],
+      "dst": [
+        "172.20.50.10:514",
+      ],
+    },
+
+    // 4. Quản trị viên (tag:lab-admin) chỉ được SSH (22/TCP) vào 2 Transit VM và vùng MGMT (172.20.50.0/24),
+    // bị chặn truy cập trực tiếp vào mạng DATABASE (172.20.40.0/24) từ thiết bị cá nhân trong tailnet.
+    {
+      "action": "accept",
+      "src": [
+        "tag:lab-admin",
+      ],
+      "dst": [
+        "tag:transit-a:22",
+        "tag:transit-b:22",
+        "172.20.50.0/24:22",
+      ],
+    },
+  ],
+
+  // ACL Unit Tests xác minh không lộ mạng DB cho thiết bị khác trong tailnet
+  "tests": [
+    {
+      "src": "tag:transit-a",
+      "accept": [
+        "172.20.20.6:443",
+        "172.20.40.11:5432",
+        "172.20.40.12:3306",
+        "172.20.50.10:514",
+      ],
+      "deny": [
+        "172.20.40.11:22",
+        "172.20.40.99:5432",
+      ],
+    },
+    {
+      "src": "tag:lab-admin",
+      "accept": [
+        "tag:transit-b:22",
+        "172.20.50.10:22",
+      ],
+      "deny": [
+        "172.20.40.11:5432",
+        "172.20.40.12:3306",
+      ],
+    },
+  ],
+}
