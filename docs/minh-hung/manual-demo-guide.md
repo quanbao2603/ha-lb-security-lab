@@ -94,8 +94,8 @@ sudo nft list tables | grep transit_filter
 sudo systemctl is-active keepalived
 sudo systemctl status keepalived --no-pager
 
-# 2. List nftables rulesets
-sudo nft list tables inet filter
+# 2. List all nftables tables (correct syntax)
+sudo nft list tables
 
 # 3. View DNAT rule for VIP
 sudo nft list ruleset | grep dnat -A 5
@@ -134,13 +134,17 @@ sudo -u postgres psql -d ha_lab_db -c "SELECT * FROM health_checks ORDER BY id D
 ### Least privilege demonstration:
 
 ```bash
-psql -h 172.20.40.11 -U app_user -d ha_lab_db
+# Set temporary password first (use demo only):
+sudo -u postgres psql -c "ALTER USER app_user PASSWORD 'DemoPass123!';"
+
+# Then run tests with PGPASSWORD environment variable:
+PGPASSWORD='DemoPass123!' psql -U app_user -d ha_lab_db
 
 -- Inside psql prompt:
 INSERT INTO health_checks(node_name, status) VALUES ('DEMO-INJECT', 'OK') RETURNING id;
 -- Expected: SUCCESS ✓
 
-UPDATE health_checks SET status = 'UPDATED' WHERE node_name = 'DEMO-INJECT';
+UPDATE health_checks SET status = 'OK' WHERE node_name = 'DEMO-INJECT';
 -- Expected: SUCCESS ✓
 
 DELETE FROM health_checks WHERE node_name = 'DEMO-INJECT';
