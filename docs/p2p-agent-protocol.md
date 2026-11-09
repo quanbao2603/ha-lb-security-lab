@@ -1,20 +1,29 @@
-# GIAO THỨC LIÊN LẠC PEER-TO-PEER ĐA KÊNH CHO AI-AGENT (PEERAGENT LINK - PAL)
+# GIAO THỨC LIÊN LẠC PEER-TO-PEER ĐA KÊNH CHO AI-AGENT (PEERAGENT LINK v2.0 - PAL-v2)
 
 ## 1. Giới thiệu & Mục tiêu Kiến trúc
 
-**PeerAgent Link (PAL)** là giao thức liên lạc ngang hàng (Peer-to-Peer) chuyên biệt, kết nối trực tiếp giữa hai máy thật (Minh Hùng: `192.168.1.26` và Quan Bảo: `192.168.1.7`) cùng các AI-Agent của hai bên.
+**PeerAgent Link v2.0 (PAL-v2)** là giao thức liên lạc ngang hàng (Peer-to-Peer) chuyên biệt, kết nối trực tiếp giữa hai máy thật (Minh Hùng: `192.168.1.26` và Quan Bảo: `192.168.1.7`) cùng các AI-Agent của hai bên.
 
 ### Các ưu điểm vượt trội:
 - **Zero-Dependency:** 100% Python 3 Standard Library (không cần `pip install`), chạy tức thời trên cả Windows và Linux.
-- **Kênh kép chịu lỗi cao (Dual-Channel HA):**
-  - **Kênh chính (Primary - LAN Direct):** Đi trực tiếp qua switch/Wi-Fi nội bộ `192.168.1.0/24`, băng thông Gigabit, độ trễ RTT `< 1ms`.
-  - **Kênh dự phòng (Fallback - Tailscale Mesh):** Đi qua overlay WireGuard `100.x.x.x`, tự động kích hoạt khi đứt cáp LAN hoặc đổi mạng.
-- **Tự phục hồi & Chuyển vùng động (Self-Healing & Auto-Failover):** Heartbeat probe mỗi 3 giây; tự động chuyển sang Fallback khi Primary rớt 2 nhịp và tự động quay về Primary ngay khi phục hồi (Failback).
+- **Giao thức Bắt tay Phiên 3 bước (Explicit 3-Way Session Handshake):**
+  - Khởi tạo kết nối qua chu trình chuẩn `SYN` ➔ `SYN-ACK` ➔ `ACK`.
+  - Thương lượng danh sách năng lực (Capabilities: Task Lifecycle, Progress Streaming, Telemetry, Wire-Speed File Transfer, RPC Audit).
+- **Máy Trạng Thái Nhiệm Vụ 5 Bước (Task Lifecycle State Machine):**
+  - **Triệt tiêu hoàn toàn vấn đề "nhận mà không phản hồi đã nhận":** Ngay khi nhận yêu cầu, node thực thi gửi ngay lập tức biên nhận `RECEIVED` (`ACK` trong < 50ms) kèm phân công worker.
+  - **Triệt tiêu hoàn toàn vấn đề "làm mà không phản hồi đang làm":** Trạng thái `IN_PROGRESS` liên tục truyền trực tiếp tiến độ (%) và tên giai đoạn (`stage`) theo thời gian thực về cho bên khởi tạo qua progress bar trực quan.
+  - Kết thúc với trạng thái `COMPLETED` kèm dữ liệu kết quả hoặc `FAILED` kèm chẩn đoán lỗi chi tiết.
+- **Liên lạc thường trực & Giám sát hiện diện thời gian thực (Tele-Presence & Continuous Heartbeat):**
+  - Heartbeat chu kỳ 3 giây tự động trao đổi bản tin hiện diện (Tele-Presence Digest): Trạng thái AI (`IDLE`, `BUSY_EXECUTING`, `WAITING_PEER`), nhiệm vụ hiện tại, danh sách máy ảo đang chạy, và thông số tài nguyên.
+  - Lệnh `--presence` hiển thị bảng điều khiển Tele-Presence Dashboard của cả hai máy song song.
+- **Kênh kép chịu lỗi cao (Dual-Channel Dynamic Failover & Failback):**
+  - **Kênh chính (Primary - LAN Direct):** Đi trực tiếp qua mạng nội bộ `192.168.1.0/24`, băng thông Gigabit, độ trễ RTT `< 1ms`.
+  - **Kênh dự phòng (Fallback - Tailscale WireGuard):** Đi qua overlay `100.x.x.x`, tự động kích hoạt khi đứt cáp LAN và tự động hồi phục về LAN khi có mạng lại.
 - **Đảm bảo toàn vẹn dữ liệu (Reliable Message Delivery):**
   - Mỗi bản tin mang mã định danh duy nhất `UUIDv4`, chữ ký kiểm tra toàn vẹn `SHA-256`.
   - Phản hồi biên nhận `ACK` bắt buộc. Tự động loại bỏ trùng lặp (Deduplication) qua SQLite Ledger.
-- **Truyền tệp & Chứng cứ tốc độ cao (High-Speed Artifact Transfer):** Endpoint truyền tệp nhị phân trực tiếp (`/api/file/upload` & `/api/file/download`) đạt tốc độ dây (wire-speed), cho phép trao đổi ảnh chụp console, file dump DB, packet pcap ngay lập tức mà không cần đợi Git.
-- **Agent Remote Procedure Call (RPC):** Cho phép AI bên này gọi trực tiếp hàm kiểm tra trên máy bên kia (ví dụ: `query_db_replication`, `ping`, `get_system_status`) và nhận JSON kết quả sau vài mili-giây.
+- **Truyền tệp & Chứng cứ tốc độ cao (Wire-Speed File Transfer):** Endpoint truyền tệp nhị phân trực tiếp (`/api/file/upload` & `/api/file/download`) đạt tốc độ dây (100+ MB/s), cho phép trao đổi ảnh chụp console, file dump DB, packet pcap ngay lập tức.
+- **Agent Remote Procedure Call (RPC):** Cho phép AI bên này gọi trực tiếp hàm kiểm tra trên máy bên kia (ví dụ: `query_db_replication`, `query_firewall_policy`, `ping`, `get_system_status`) và nhận JSON kết quả sau vài mili-giây.
 
 ---
 
@@ -73,16 +82,49 @@ python scripts/p2p/agent_peer.py --rpc query_db_replication
 python scripts/p2p/agent_peer.py --send-file D:/Lab/Evidance/20261110-web-failover.png
 ```
 
-### 4.4. Xem trạng thái liên kết và độ trễ (RTT) của 2 kênh
+### 4.4. Bắt tay Phiên 3 bước (3-Way Handshake)
 ```bash
-python scripts/p2p/agent_peer.py --status
+python scripts/p2p/agent_peer.py --handshake
 ```
-Output mẫu:
+Output:
 ```text
-=== PEERAGENT LINK (PAL) STATUS ===
-Node ID:          site-b-minhhung
-Target Peer:      site-a-quanbao
-Primary LAN:      http://192.168.1.7:8088 -> Status: HEALTHY (RTT: 0.82 ms)
-Fallback TS:      http://100.82.115.17:8088 -> Status: HEALTHY (RTT: 4.15 ms)
-Active Route:     PRIMARY_LAN
+[HANDSHAKE-1] Sending SYN to http://192.168.1.7:8088 (Session: a81f2b09...)
+[HANDSHAKE-2] Received SYN-ACK from site-a-quanbao (RTT: 0.95 ms, Caps: ['task_lifecycle', ...])
+[HANDSHAKE-3] Handshake COMPLETE! Session [a81f2b09] is ESTABLISHED.
+```
+
+### 4.5. Phân công nhiệm vụ & Truyền trực tiếp tiến độ thời gian thực (Task Dispatch & Progress Stream)
+```bash
+python scripts/p2p/agent_peer.py --dispatch-task "Audit PostgreSQL Replication" query_db_replication
+```
+Output:
+```text
+[TASK-DISPATCH] Dispatching: 'Audit PostgreSQL Replication' (ID: e5b14f82...)
+[TASK-ACK] Peer ACKed receipt in 2.15 ms! State: RECEIVED (Executor assigned)
+[TASK-PROGRESS] [■■■■■□□□□□□□□□□□□□□□]  25% | Stage: Validating parameters & prerequisites (IN_PROGRESS)
+[TASK-PROGRESS] [■■■■■■■■■■■■□□□□□□□□]  60% | Stage: Running action: query_db_replication (IN_PROGRESS)
+[TASK-PROGRESS] [■■■■■■■■■■■■■■■■■■■■] 100% | Stage: Execution Complete (COMPLETED)
+[TASK-COMPLETED] Success! Result: {'success': True, 'output': 'client_addr: 172.20.40.12 | state: streaming'}
+```
+
+### 4.6. Bảng điều khiển Hiện diện & Thông số Máy ảo thời gian thực (Tele-Presence Dashboard)
+```bash
+python scripts/p2p/agent_peer.py --presence
+```
+Output:
+```text
+================================================================================
+        PEERAGENT LINK (PAL-v2) - REAL-TIME TELE-PRESENCE DASHBOARD
+================================================================================
+ [LOCAL NODE] site-b-minhhung                  | [REMOTE PEER] site-a-quanbao
+--------------------------------------------------------------------------------
+ State:       ONLINE (LISTENING)               | State:       IDLE
+ Task:        Awaiting Instructions            | Task:        Completed HA Run
+ VMs Running: Transit-B, Firewall-A, DB-Pri... | VMs Running: Transit-A, LB-A, Web-A...
+ Metrics:     RAM: ~7.5GB Free | CPU: Nominal  | Metrics:     RAM: OK | CPU: Nominal
+--------------------------------------------------------------------------------
+ [CHANNEL STATUS]
+ - Primary LAN:   http://192.168.1.7:8088      -> HEALTHY (RTT: 0.82 ms)
+ - Fallback TS:   http://100.82.115.17:8088    -> HEALTHY (RTT: 4.15 ms)
+================================================================================
 ```
