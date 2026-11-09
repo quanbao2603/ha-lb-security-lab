@@ -916,6 +916,18 @@ def main():
     channel_mgr = ChannelManager(config, ledger)
     client = PeerClient(config, channel_mgr, ledger)
 
+    if args.status:
+        channel_mgr.probe_with_presence(config.primary_url)
+        channel_mgr.probe_with_presence(config.fallback_url)
+        stats = ledger.get_channel_stats()
+        print("\n=== PEERAGENT LINK (PAL-v2) STATUS ===")
+        print(f"Node ID:          {config.node_id}")
+        print(f"Target Peer:      {config.peer_id}")
+        print(f"Primary LAN:      {config.primary_url} -> Status: {stats.get('PRIMARY_LAN', {}).get('status')} (RTT: {stats.get('PRIMARY_LAN', {}).get('rtt_ms')} ms)")
+        print(f"Fallback TS:      {config.fallback_url} -> Status: {stats.get('FALLBACK_TAILSCALE', {}).get('status')} (RTT: {stats.get('FALLBACK_TAILSCALE', {}).get('rtt_ms')} ms)")
+        print(f"Active Route:     {channel_mgr.active_channel}\n")
+        sys.exit(0)
+
     if args.presence:
         channel_mgr.probe_with_presence(config.primary_url)
         channel_mgr.probe_with_presence(config.fallback_url)
