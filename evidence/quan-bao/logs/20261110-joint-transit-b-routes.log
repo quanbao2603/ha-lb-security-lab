@@ -1,0 +1,9 @@
+J-03 | Transit-B | 2026-11-10T04:22:30+07:00
+$ ip route show 172.20.40.0/24; ip route show 172.20.50.0/24; cat /proc/sys/net/ipv4/ip_forward
+1
+rc=0
+$ ip route get 172.20.40.11; ip route get 172.20.50.10 (bổ sung J-03)
+172.20.40.11 via 172.20.20.1 dev eth0 src 172.20.20.6 uid 1000 
+    cache 
+172.20.50.10 via 172.20.20.1 dev eth0 src 172.20.20.6 uid 1000 
+    cache 

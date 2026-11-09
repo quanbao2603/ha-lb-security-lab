@@ -1,0 +1,26 @@
+J-10 | DB-Primary rejoin as standby | 2026-11-10T04:46:16+07:00
+sudo -n systemctl stop postgresql
+sudo -n rm -rf /var/lib/postgresql/16/main/*
+sudo -n -u postgres pg_basebackup -h 172.20.40.12 -p 5432 -U repl_user -D /var/lib/postgresql/16/main -Fp -Xs -P -R
+sudo -n systemctl start postgresql
+sudo -n -u postgres psql -t -c "SELECT pg_is_in_recovery();"
+pg_basebackup: error: directory "/var/lib/postgresql/16/main" exists but is not empty
+ f
+
+rc=0
+J-10 retry | DB-Primary rejoin | 2026-11-10T04:47:31+07:00
+set -e
+sudo -n systemctl stop postgresql
+sudo -n sh -c 'rm -rf /var/lib/postgresql/16/main/*'
+test -z "$(sudo -n find /var/lib/postgresql/16/main -mindepth 1 -maxdepth 1 -print -quit)"
+sudo -n -u postgres pg_basebackup -h 172.20.40.12 -p 5432 -U repl_user -D /var/lib/postgresql/16/main -Fp -Xs -P -R
+sudo -n systemctl start postgresql
+sudo -n -u postgres psql -t -c "SELECT pg_is_in_recovery();"
+waiting for checkpoint
+ 2461/30629 kB (8%), 0/1 tablespace
+16291/30629 kB (53%), 0/1 tablespace
+30639/30639 kB (100%), 0/1 tablespace
+30639/30639 kB (100%), 1/1 tablespace
+ t
+
+rc=0

@@ -1,0 +1,28 @@
+J-07 | DB replication | 2026-11-10T04:38:06+07:00
+--- DB-Primary (172.20.40.11) ---
+ f
+
+ id |          node_name           | status 
+----+------------------------------+--------
+ 39 | DEMO-JOINT                   | OK
+ 38 | MINH-TEST                    | OK
+ 37 | TEST-LEAST-PRI               | OK
+ 36 | DEMO-TEST                    | OK
+ 35 | promoted-db-12-failover-test | OK
+(5 rows)
+
+ 172.20.40.12 | streaming | async
+
+--- DB-Replica (172.20.40.12) ---
+ t
+
+ id |          node_name           | status 
+----+------------------------------+--------
+ 39 | DEMO-JOINT                   | OK
+ 38 | MINH-TEST                    | OK
+ 37 | TEST-LEAST-PRI               | OK
+ 36 | DEMO-TEST                    | OK
+ 35 | promoted-db-12-failover-test | OK
+(5 rows)
+
+rc=0

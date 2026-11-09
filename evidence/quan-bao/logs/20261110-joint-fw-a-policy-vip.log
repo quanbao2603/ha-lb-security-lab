@@ -1,0 +1,35 @@
+J-04 | Firewall-A | 2026-11-10T04:22:32+07:00
+$ sudo systemctl is-active nftables keepalived; sudo nft list ruleset | grep -E "policy drop|FW-" | head -25; ip -br addr | grep gateway .1
+active
+inactive
+		iifname != "lo" ip saddr 127.0.0.0/8 limit rate 10/minute log prefix "[FW-DENY-SPOOF] " counter packets 0 bytes 0 drop
+		iifname "eth0" ip saddr != 172.20.10.0/24 limit rate 10/minute log prefix "[FW-DENY-SPOOF] " counter packets 0 bytes 0 drop
+		iifname "eth1" ip saddr != 172.20.20.0/24 limit rate 10/minute log prefix "[FW-DENY-SPOOF] " counter packets 0 bytes 0 drop
+		iifname "eth2" ip saddr != 172.20.30.0/24 limit rate 10/minute log prefix "[FW-DENY-SPOOF] " counter packets 0 bytes 0 drop
+		iifname "eth3" ip saddr != 172.20.40.0/24 limit rate 10/minute log prefix "[FW-DENY-SPOOF] " counter packets 0 bytes 0 drop
+		iifname "eth4" ip saddr != 172.20.50.0/24 limit rate 10/minute log prefix "[FW-DENY-SPOOF] " counter packets 0 bytes 0 drop
+		type filter hook input priority filter; policy drop;
+		ct state invalid limit rate 10/minute log prefix "[FW-DENY-INVALID] " counter packets 0 bytes 0 drop
+		ip saddr 172.20.10.0/24 tcp dport 22 log prefix "[FW-DENY-WAN-SSH] " counter packets 0 bytes 0 drop
+		ip saddr 172.20.50.0/24 tcp dport 22 ct state new log prefix "[FW-ALLOW-MGMT-SSH:] " counter packets 50 bytes 2624 accept
+		ip saddr { 172.20.20.0/24, 172.20.40.0/24, 172.20.50.0/24 } ip protocol icmp icmp type echo-request limit rate 5/second log prefix "[FW-ALLOW-ICMP-IN] " counter packets 0 bytes 0 accept
+		limit rate 20/minute burst 40 packets log prefix "[FW-DENY-INPUT-DEFAULT] " flags all counter packets 2694 bytes 181976 drop
+		type filter hook forward priority filter; policy drop;
+		ip daddr 172.20.50.10 tcp dport 22 ct state new log prefix "[FW-ALLOW-SITE-A-JUMP:] " counter packets 10 bytes 600 accept
+		ct state invalid limit rate 10/minute log prefix "[FW-DENY-INVALID] " counter packets 0 bytes 0 drop
+		ip saddr 172.20.10.0/24 ip daddr { 172.20.20.21, 172.20.20.22 } log prefix "[FW-DENY-WAN-DIRECT:WEB] " counter packets 0 bytes 0 drop
+		ip saddr 172.20.10.0/24 ip daddr 172.20.40.0/24 log prefix "[FW-DENY-WAN-DIRECT:DB] " counter packets 0 bytes 0 drop
+		ip saddr 172.20.10.0/24 ip daddr 172.20.50.0/24 log prefix "[FW-DENY-WAN-DIRECT:MGMT] " counter packets 0 bytes 0 drop
+		ip saddr 172.20.10.0/24 ip daddr 172.20.30.0/24 log prefix "[FW-DENY-WAN-DIRECT:APP] " counter packets 0 bytes 0 drop
+		ip saddr 172.20.10.0/24 ip daddr 172.20.20.100 tcp dport { 80, 443 } ct state new log prefix "[FW-ALLOW-WAN-VIP:] " counter packets 0 bytes 0 accept
+		ip saddr { 172.20.20.10, 172.20.20.11 } ip daddr { 172.20.20.21, 172.20.20.22 } tcp dport 80 ct state new log prefix "[FW-ALLOW-LB-WEB:] " counter packets 0 bytes 0 accept
+		ip saddr { 172.20.20.21, 172.20.20.22 } ip daddr { 172.20.40.11, 172.20.40.12 } tcp dport 5432 ct state new log prefix "[FW-ALLOW-WEB-DB:] " counter packets 0 bytes 0 accept
+		ip saddr 172.20.40.11 ip daddr 172.20.40.12 tcp dport 5432 ct state new log prefix "[FW-ALLOW-DB-REPL:] " counter packets 0 bytes 0 accept
+		ip saddr 172.20.40.12 ip daddr 172.20.40.11 tcp dport 5432 ct state new log prefix "[FW-ALLOW-DB-REPL:] " counter packets 0 bytes 0 accept
+		ip saddr 172.20.50.0/24 ip daddr { 172.20.10.0/24, 172.20.20.0/24, 172.20.30.0/24, 172.20.40.0/24, 172.20.50.0/24 } tcp dport 22 ct state new log prefix "[FW-ALLOW-MGMT-SSH:] " counter packets 168 bytes 8784 accept
+eth0             UP             172.20.10.2/24 172.20.10.1/24 fe80::20c:29ff:fe96:5540/64 
+eth1             UP             172.20.20.2/24 172.20.20.1/24 fe80::20c:29ff:fe96:554a/64 
+eth2             UP             172.20.30.2/24 172.20.30.1/24 fe80::20c:29ff:fe96:5554/64 
+eth3             UP             172.20.40.2/24 172.20.40.1/24 fe80::20c:29ff:fe96:555e/64 
+eth4             UP             172.20.50.2/24 172.20.50.1/24 fe80::20c:29ff:fe96:5568/64 
+rc=0

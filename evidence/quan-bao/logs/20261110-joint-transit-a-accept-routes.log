@@ -1,0 +1,22 @@
+C-01 | Transit-A (172.20.21.5 / NAT 192.168.179.169) | 2026-11-10T04:20:21+07:00
+$ sudo tailscale up --accept-routes --advertise-routes=172.20.21.0/24
+Warning: IPv6 forwarding is disabled.
+Subnet routes and exit nodes may not work correctly.
+See https://tailscale.com/s/ip-forwarding
+Warning: UDP GRO forwarding is suboptimally configured on ens33, UDP forwarding throughput capability will increase with a configuration change.
+See https://tailscale.com/s/ethtool-config-udp-gro
+rc=0
+$ ip route show 172.20.40.0/24
+$ ping -c 3 -W 2 172.20.40.11
+PING 172.20.40.11 (172.20.40.11) 56(84) bytes of data.
+64 bytes from 172.20.40.11: icmp_seq=1 ttl=62 time=196 ms
+64 bytes from 172.20.40.11: icmp_seq=2 ttl=62 time=65.8 ms
+64 bytes from 172.20.40.11: icmp_seq=3 ttl=62 time=67.1 ms
+
+--- 172.20.40.11 ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 2003ms
+rtt min/avg/max/mdev = 65.798/109.720/196.239/61.180 ms
+rc=0
+$ ip route get 172.20.40.11 (bổ sung cho C-01)
+172.20.40.11 dev tailscale0 table 52 src 100.99.198.105 uid 1000 
+    cache 

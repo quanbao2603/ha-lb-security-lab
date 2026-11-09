@@ -1,0 +1,158 @@
+J-13 | Log-Monitor (172.20.50.10) | 2026-11-10T04:24:16+07:00
+ls -lh /var/log/central/ 2>/dev/null
+sudo -n tail -n 12 /var/log/central/firewall-a/kernel.log 2>/dev/null || sudo -n tail -n 12 /var/log/syslog
+total 20K
+drwxr-x--- 2 root root 4.0K Nov  8 06:55 db-primary
+drwxr-x--- 2 root root 4.0K Nov  8 07:08 db-replica
+drwxr-x--- 2 root root 4.0K Nov  8 06:55 fw-a
+drwxr-x--- 2 root root 4.0K Nov  8 06:03 fw-b
+drwxr-x--- 2 root root 4.0K Nov 10 03:47 transit-b
+2026-11-10T04:22:33.335764+07:00 log-monitor systemd[1]: session-44.scope: Deactivated successfully.
+2026-11-10T04:22:36.994760+07:00 log-monitor systemd[1]: Started session-45.scope - Session 45 of User ops.
+2026-11-10T04:22:38.295810+07:00 log-monitor systemd[1]: session-45.scope: Deactivated successfully.
+2026-11-10T04:23:19.094032+07:00 log-monitor systemd[1]: Started session-46.scope - Session 46 of User ops.
+2026-11-10T04:23:20.442824+07:00 log-monitor systemd[1]: session-46.scope: Deactivated successfully.
+2026-11-10T04:23:24.166323+07:00 log-monitor systemd[1]: Started session-47.scope - Session 47 of User ops.
+2026-11-10T04:23:27.438835+07:00 log-monitor systemd[1]: session-47.scope: Deactivated successfully.
+2026-11-10T04:23:29.442458+07:00 log-monitor systemd[1]: Started session-48.scope - Session 48 of User ops.
+2026-11-10T04:23:32.686996+07:00 log-monitor systemd[1]: session-48.scope: Deactivated successfully.
+2026-11-10T04:24:17.323017+07:00 log-monitor systemd[1]: Started session-49.scope - Session 49 of User ops.
+2026-11-10T04:24:18.964765+07:00 log-monitor systemd[1]: session-49.scope: Deactivated successfully.
+2026-11-10T04:24:21.041834+07:00 log-monitor systemd[1]: Started session-50.scope - Session 50 of User ops.
+rc=0
+$ ls /var/log/central/fw-a/ + tail (bổ sung J-13)
+ls: cannot open directory '/var/log/central/fw-a/': Permission denied
+==> /var/log/central/fw-a/(sd-pam).log <==
+2026-11-08T07:05:24+07:00 fw-a (sd-pam): pam_unix(systemd-user:session): session closed for user ops
+2026-11-08T09:17:50+07:00 fw-a (sd-pam): pam_unix(systemd-user:session): session closed for user ops
+2026-11-08T09:19:42+07:00 fw-a (sd-pam): pam_unix(systemd-user:session): session closed for user ops
+2026-11-08T09:20:41+07:00 fw-a (sd-pam): pam_unix(systemd-user:session): session closed for user ops
+2026-11-08T09:31:56+07:00 fw-a (sd-pam): pam_unix(systemd-user:session): session closed for user ops
+2026-11-08T09:40:30+07:00 fw-a (sd-pam): pam_unix(systemd-user:session): session closed for user ops
+2026-11-08T09:41:18+07:00 fw-a (sd-pam): pam_unix(systemd-user:session): session closed for user ops
+2026-11-08T09:53:25+07:00 fw-a (sd-pam): pam_unix(systemd-user:session): session closed for user ops
+2026-11-08T09:53:46+07:00 fw-a (sd-pam): pam_unix(systemd-user:session): session closed for user ops
+2026-11-08T10:00:26+07:00 fw-a (sd-pam): pam_unix(systemd-user:session): session closed for user ops
+
+==> /var/log/central/fw-a/(systemd).log <==
+2026-11-10T03:56:03+07:00 fw-a (systemd): pam_unix(systemd-user:session): session opened for user ops(uid=1000) by (uid=0)
+2026-11-10T03:56:28+07:00 fw-a (systemd): pam_unix(systemd-user:session): session opened for user ops(uid=1000) by (uid=0)
+2026-11-10T03:56:39+07:00 fw-a (systemd): pam_unix(systemd-user:session): session opened for user ops(uid=1000) by (uid=0)
+2026-11-10T03:57:05+07:00 fw-a (systemd): pam_unix(systemd-user:session): session opened for user ops(uid=1000) by (uid=0)
+2026-11-10T04:00:17+07:00 fw-a (systemd): pam_unix(systemd-user:session): session opened for user ops(uid=1000) by (uid=0)
+2026-11-10T04:02:44+07:00 fw-a (systemd): pam_unix(systemd-user:session): session opened for user ops(uid=1000) by (uid=0)
+2026-11-10T04:03:31+07:00 fw-a (systemd): pam_unix(systemd-user:session): session opened for user ops(uid=1000) by (uid=0)
+2026-11-10T04:14:16+07:00 fw-a (systemd): pam_unix(systemd-user:session): session opened for user ops(uid=1000) by (uid=0)
+2026-11-10T04:22:32+07:00 fw-a (systemd): pam_unix(systemd-user:session): session opened for user ops(uid=1000) by (uid=0)
+2026-11-10T04:23:19+07:00 fw-a (systemd): pam_unix(systemd-user:session): session opened for user ops(uid=1000) by (uid=0)
+
+==> /var/log/central/fw-a/VGAuthService.log <==
+2026-11-08T06:55:22+07:00 fw-a VGAuthService[498]: Pref_Init: Using '/etc/vmware-tools/vgauth.conf' as preferences filepath
+2026-11-08T06:55:22+07:00 fw-a VGAuthService[498]: Core dump limit set to -1
+2026-11-08T06:55:22+07:00 fw-a VGAuthService[498]: Cannot load message catalog for domain 'VGAuthService', language 'C', catalog dir '/usr/share/open-vm-tools'.
+2026-11-08T06:55:22+07:00 fw-a VGAuthService[498]: INIT SERVICE
+2026-11-08T06:55:23+07:00 fw-a VGAuthService[498]: Using '/var/lib/vmware/VGAuth/aliasStore' for alias store root directory
+2026-11-08T06:55:24+07:00 fw-a VGAuthService[498]: LoadCatalogAndSchema: Using '/etc/vmware-tools/vgauth/schemas' for SAML schemas
+2026-11-08T06:55:24+07:00 fw-a VGAuthService[498]: LoadPrefs: Allowing 300 of clock skew for SAML date validation
+2026-11-08T06:55:24+07:00 fw-a VGAuthService[498]: SAML_Init: Using xmlsec1 1.2.37 for XML signature support
+2026-11-08T06:55:24+07:00 fw-a VGAuthService[498]: ServiceNetworkCreateSocketDir: Created socket directory '/var/run/vmware'
+2026-11-08T06:55:24+07:00 fw-a VGAuthService[498]: BEGIN SERVICE
+
+==> /var/log/central/fw-a/dbus-daemon.log <==
+2026-11-08T06:55:23+07:00 fw-a dbus-daemon[494]: [system] Successfully activated service 'org.freedesktop.systemd1'
+
+==> /var/log/central/fw-a/kernel.log <==
+2026-11-10T04:24:44+07:00 fw-a kernel: [24925.461083] [FW-ALLOW-SYSLOG] IN=eth3 OUT=eth4 MAC=00:0c:29:96:55:5e:00:0c:29:f5:16:68:08:00 SRC=172.20.40.11 DST=172.20.50.10 LEN=127 TOS=0x00 PREC=0x00 TTL=63 ID=25138 DF PROTO=UDP SPT=54593 DPT=514 LEN=107 
+2026-11-10T04:24:44+07:00 fw-a kernel: [24925.463228] [FW-ALLOW-SYSLOG] IN=eth3 OUT=eth4 MAC=00:0c:29:96:55:5e:00:0c:29:f5:16:68:08:00 SRC=172.20.40.11 DST=172.20.50.10 LEN=149 TOS=0x00 PREC=0x00 TTL=63 ID=25139 DF PROTO=UDP SPT=54593 DPT=514 LEN=129 
+2026-11-10T04:24:44+07:00 fw-a kernel: [24925.469866] [FW-ALLOW-SYSLOG] IN=eth3 OUT=eth4 MAC=00:0c:29:96:55:5e:00:0c:29:f5:16:68:08:00 SRC=172.20.40.11 DST=172.20.50.10 LEN=126 TOS=0x00 PREC=0x00 TTL=63 ID=25140 DF PROTO=UDP SPT=54593 DPT=514 LEN=106 
+2026-11-10T04:24:49+07:00 fw-a kernel: [24930.006004] [FW-ALLOW-SYSLOG] IN=eth1 OUT=eth4 MAC=00:0c:29:96:55:4a:00:0c:29:42:f4:e9:08:00 SRC=172.20.20.6 DST=172.20.50.10 LEN=150 TOS=0x00 PREC=0x00 TTL=63 ID=27457 DF PROTO=UDP SPT=57048 DPT=514 LEN=130 
+2026-11-10T04:24:50+07:00 fw-a kernel: [24931.391505] [FW-ALLOW-SYSLOG] IN=eth1 OUT=eth4 MAC=00:0c:29:96:55:4a:00:0c:29:42:f4:e9:08:00 SRC=172.20.20.6 DST=172.20.50.10 LEN=192 TOS=0x00 PREC=0x00 TTL=63 ID=27794 DF PROTO=UDP SPT=57048 DPT=514 LEN=172 
+2026-11-10T04:24:50+07:00 fw-a kernel: [24931.397280] [FW-ALLOW-SYSLOG] IN=eth1 OUT=eth4 MAC=00:0c:29:96:55:4a:00:0c:29:42:f4:e9:08:00 SRC=172.20.20.6 DST=172.20.50.10 LEN=142 TOS=0x00 PREC=0x00 TTL=63 ID=27795 DF PROTO=UDP SPT=57048 DPT=514 LEN=122 
+2026-11-10T04:24:50+07:00 fw-a kernel: [24931.418821] [FW-ALLOW-SYSLOG] IN=eth1 OUT=eth4 MAC=00:0c:29:96:55:4a:00:0c:29:42:f4:e9:08:00 SRC=172.20.20.6 DST=172.20.50.10 LEN=107 TOS=0x00 PREC=0x00 TTL=63 ID=27800 DF PROTO=UDP SPT=57048 DPT=514 LEN=87 
+2026-11-10T04:24:50+07:00 fw-a kernel: [24931.419043] [FW-ALLOW-SYSLOG] IN=eth1 OUT=eth4 MAC=00:0c:29:96:55:4a:00:0c:29:42:f4:e9:08:00 SRC=172.20.20.6 DST=172.20.50.10 LEN=122 TOS=0x00 PREC=0x00 TTL=63 ID=27801 DF PROTO=UDP SPT=57048 DPT=514 LEN=102 
+2026-11-10T04:24:50+07:00 fw-a kernel: [24931.453975] [FW-ALLOW-SYSLOG] IN=eth1 OUT=eth4 MAC=00:0c:29:96:55:4a:00:0c:29:42:f4:e9:08:00 SRC=172.20.20.6 DST=172.20.50.10 LEN=139 TOS=0x00 PREC=0x00 TTL=63 ID=27805 DF PROTO=UDP SPT=57048 DPT=514 LEN=119 
+2026-11-10T04:24:50+07:00 fw-a kernel: [24931.460838] [FW-ALLOW-SITE-A-JUMP:] IN=eth1 OUT=eth4 MAC=00:0c:29:96:55:4a:00:0c:29:42:f4:e9:08:00 SRC=172.20.20.6 DST=172.20.50.10 LEN=60 TOS=0x00 PREC=0x00 TTL=63 ID=63141 DF PROTO=TCP SPT=40834 DPT=22 WINDOW=64240 RES=0x00 SYN URGP=0 
+
+==> /var/log/central/fw-a/lab-init.log <==
+2026-11-08T00:26:33+07:00 fw-a lab-init: Central syslog forwarding active from fw-a
+
+==> /var/log/central/fw-a/rsyslogd.log <==
+2026-11-08T00:26:33+07:00 fw-a rsyslogd: [origin software="rsyslogd" swVersion="8.2302.0" x-pid="473" x-info="https://www.rsyslog.com"] exiting on signal 15.
+2026-11-08T00:26:33+07:00 fw-a rsyslogd: imuxsock: Acquired UNIX socket '/run/systemd/journal/syslog' (fd 3) from systemd.  [v8.2302.0]
+2026-11-08T00:26:33+07:00 fw-a rsyslogd: [origin software="rsyslogd" swVersion="8.2302.0" x-pid="676" x-info="https://www.rsyslog.com"] start
+2026-11-08T07:09:10+07:00 fw-a rsyslogd: action 'action-0-builtin:omfwd' resumed (module 'builtin:omfwd') [v8.2302.0 try https://www.rsyslog.com/e/2359 ]
+2026-11-08T07:09:10+07:00 fw-a rsyslogd: rsyslogd[internal_messages]: 568 messages lost due to rate-limiting (500 allowed within 5 seconds)
+2026-11-10T02:38:02+07:00 fw-a rsyslogd: action 'action-0-builtin:omfwd' resumed (module 'builtin:omfwd') [v8.2302.0 try https://www.rsyslog.com/e/2359 ]
+
+==> /var/log/central/fw-a/sshd.log <==
+2026-11-10T04:22:32+07:00 fw-a sshd[2424]: pam_env(sshd:session): deprecated reading of user environment enabled
+2026-11-10T04:22:33+07:00 fw-a sshd[2424]: pam_unix(sshd:session): session closed for user ops
+2026-11-10T04:22:37+07:00 fw-a sshd[2446]: Accepted publickey for ops from 172.20.50.10 port 36208 ssh2: ED25519 SHA256:Jihi4W8fbFd7aGmzWtMK1ssyZKXM464LJ6BWyeNbmoY
+2026-11-10T04:22:37+07:00 fw-a sshd[2446]: pam_unix(sshd:session): session opened for user ops(uid=1000) by (uid=0)
+2026-11-10T04:22:37+07:00 fw-a sshd[2446]: pam_env(sshd:session): deprecated reading of user environment enabled
+2026-11-10T04:22:38+07:00 fw-a sshd[2446]: pam_unix(sshd:session): session closed for user ops
+2026-11-10T04:23:19+07:00 fw-a sshd[2464]: Accepted publickey for ops from 172.20.50.10 port 42832 ssh2: ED25519 SHA256:Jihi4W8fbFd7aGmzWtMK1ssyZKXM464LJ6BWyeNbmoY
+2026-11-10T04:23:19+07:00 fw-a sshd[2464]: pam_unix(sshd:session): session opened for user ops(uid=1000) by (uid=0)
+2026-11-10T04:23:19+07:00 fw-a sshd[2464]: pam_env(sshd:session): deprecated reading of user environment enabled
+2026-11-10T04:23:20+07:00 fw-a sshd[2464]: pam_unix(sshd:session): session closed for user ops
+
+==> /var/log/central/fw-a/sudo.log <==
+2026-11-10T04:22:33+07:00 fw-a sudo: pam_unix(sudo:session): session closed for user root
+2026-11-10T04:22:37+07:00 fw-a sudo:      ops : PWD=/home/ops ; USER=root ; COMMAND=/usr/bin/systemctl is-active nftables keepalived
+2026-11-10T04:22:37+07:00 fw-a sudo: pam_unix(sudo:session): session opened for user root(uid=0) by (uid=1000)
+2026-11-10T04:22:37+07:00 fw-a sudo: pam_unix(sudo:session): session closed for user root
+2026-11-10T04:22:37+07:00 fw-a sudo:      ops : PWD=/home/ops ; USER=root ; COMMAND=/usr/sbin/nft list ruleset
+2026-11-10T04:22:37+07:00 fw-a sudo: pam_unix(sudo:session): session opened for user root(uid=0) by (uid=1000)
+2026-11-10T04:22:38+07:00 fw-a sudo: pam_unix(sudo:session): session closed for user root
+2026-11-10T04:23:20+07:00 fw-a sudo:      ops : PWD=/home/ops ; USER=root ; COMMAND=/usr/bin/journalctl -k --since '5 minutes ago' --no-pager
+2026-11-10T04:23:20+07:00 fw-a sudo: pam_unix(sudo:session): session opened for user root(uid=0) by (uid=1000)
+2026-11-10T04:23:20+07:00 fw-a sudo: pam_unix(sudo:session): session closed for user root
+
+==> /var/log/central/fw-a/systemd-logind.log <==
+2026-11-10T04:14:16+07:00 fw-a systemd-logind[526]: Removed session 78.
+2026-11-10T04:22:32+07:00 fw-a systemd-logind[526]: New session 80 of user ops.
+2026-11-10T04:22:33+07:00 fw-a systemd-logind[526]: Session 80 logged out. Waiting for processes to exit.
+2026-11-10T04:22:33+07:00 fw-a systemd-logind[526]: Removed session 80.
+2026-11-10T04:22:37+07:00 fw-a systemd-logind[526]: New session 82 of user ops.
+2026-11-10T04:22:38+07:00 fw-a systemd-logind[526]: Session 82 logged out. Waiting for processes to exit.
+2026-11-10T04:22:38+07:00 fw-a systemd-logind[526]: Removed session 82.
+2026-11-10T04:23:19+07:00 fw-a systemd-logind[526]: New session 83 of user ops.
+2026-11-10T04:23:20+07:00 fw-a systemd-logind[526]: Session 83 logged out. Waiting for processes to exit.
+2026-11-10T04:23:20+07:00 fw-a systemd-logind[526]: Removed session 83.
+
+==> /var/log/central/fw-a/systemd-networkd.log <==
+2026-11-08T06:03:38+07:00 fw-a systemd-networkd[392]: eth0: found matching network '/etc/systemd/network/05-vmx-eth0.network', based on potentially unpredictable interface name.
+2026-11-08T06:03:38+07:00 fw-a systemd-networkd[392]: eth4: found matching network '/etc/systemd/network/05-vmx-eth4.network', based on potentially unpredictable interface name.
+2026-11-08T06:03:38+07:00 fw-a systemd-networkd[392]: eth2: found matching network '/etc/systemd/network/05-vmx-eth2.network', based on potentially unpredictable interface name.
+2026-11-08T06:55:22+07:00 fw-a systemd-networkd[488]: eth3: Gained IPv6LL
+2026-11-08T06:55:23+07:00 fw-a systemd-networkd[488]: eth1: Gained IPv6LL
+2026-11-08T12:16:41+07:00 fw-a systemd-networkd[452]: eth1: DHCPv6 lease lost
+2026-11-08T12:16:41+07:00 fw-a systemd-networkd[452]: eth0: DHCPv6 lease lost
+2026-11-08T12:16:41+07:00 fw-a systemd-networkd[452]: eth3: DHCPv6 lease lost
+2026-11-08T12:16:41+07:00 fw-a systemd-networkd[452]: eth2: DHCPv6 lease lost
+2026-11-08T12:16:41+07:00 fw-a systemd-networkd[452]: eth4: DHCPv6 lease lost
+
+==> /var/log/central/fw-a/systemd-timesyncd.log <==
+2026-11-08T06:55:34+07:00 fw-a systemd-timesyncd[475]: Network configuration changed, trying to establish connection.
+2026-11-08T06:55:35+07:00 fw-a systemd-timesyncd[475]: Network configuration changed, trying to establish connection.
+2026-11-08T07:04:42+07:00 fw-a systemd-timesyncd[475]: Network configuration changed, trying to establish connection.
+2026-11-08T07:04:42+07:00 fw-a systemd-timesyncd[475]: Network configuration changed, trying to establish connection.
+2026-11-08T12:16:41+07:00 fw-a systemd-timesyncd[406]: Network configuration changed, trying to establish connection.
+2026-11-08T12:16:41+07:00 fw-a systemd-timesyncd[406]: Network configuration changed, trying to establish connection.
+2026-11-08T12:16:41+07:00 fw-a systemd-timesyncd[406]: Network configuration changed, trying to establish connection.
+2026-11-08T12:16:41+07:00 fw-a systemd-timesyncd[406]: Network configuration changed, trying to establish connection.
+2026-11-08T12:16:41+07:00 fw-a systemd-timesyncd[406]: Network configuration changed, trying to establish connection.
+2026-11-08T12:16:41+07:00 fw-a systemd-timesyncd[406]: Network configuration changed, trying to establish connection.
+
+==> /var/log/central/fw-a/systemd.log <==
+2026-11-10T04:23:30+07:00 fw-a systemd[2467]: Stopped target timers.target - Timers.
+2026-11-10T04:23:30+07:00 fw-a systemd[2467]: Finished systemd-exit.service - Exit the Session.
+2026-11-10T04:23:30+07:00 fw-a systemd[2467]: Reached target exit.target - Exit the Session.
+2026-11-10T04:23:30+07:00 fw-a systemd[1]: user@1000.service: Deactivated successfully.
+2026-11-10T04:23:30+07:00 fw-a systemd[1]: Stopped user@1000.service - User Manager for UID 1000.
+2026-11-10T04:23:30+07:00 fw-a systemd[1]: Stopping user-runtime-dir@1000.service - User Runtime Directory /run/user/1000...
+2026-11-10T04:23:30+07:00 fw-a systemd[1]: run-user-1000.mount: Deactivated successfully.
+2026-11-10T04:23:30+07:00 fw-a systemd[1]: user-runtime-dir@1000.service: Deactivated successfully.
+2026-11-10T04:23:30+07:00 fw-a systemd[1]: Stopped user-runtime-dir@1000.service - User Runtime Directory /run/user/1000.
+2026-11-10T04:23:30+07:00 fw-a systemd[1]: Removed slice user-1000.slice - User Slice of UID 1000.
+rc=0

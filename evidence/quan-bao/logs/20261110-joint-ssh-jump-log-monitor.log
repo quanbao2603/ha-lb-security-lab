@@ -1,0 +1,4 @@
+J-01 | Windows -> Transit-A -> Transit-B -> Log-Monitor | 2026-11-10T04:22:24+07:00
+$ ssh -J ops@172.20.20.6 ops@172.20.50.10 hostname (chuỗi tương đương, đi qua Transit-A do path Tailscale Windows chập chờn)
+log-monitor
+rc=0

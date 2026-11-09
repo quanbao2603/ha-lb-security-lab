@@ -1,0 +1,15 @@
+J-09b | DB failover verification | T1=2026-11-10T04:45:58+07:00
+--- DB-Primary status ---
+172.20.40.11 PostgreSQL inactive (expected after simulated failure)
+--- DB-Replica status ---
+db-replica
+ f
+
+ id 
+----
+ 75
+(1 row)
+
+INSERT 0 1
+verify_rc=0
+T1=2026-11-10T04:45:58+07:00

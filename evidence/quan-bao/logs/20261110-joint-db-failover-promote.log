@@ -1,0 +1,13 @@
+J-09a | DB failover | T0=2026-11-10T04:45:06+07:00
+--- Stop DB-Primary 172.20.40.11 ---
+inactive
+stop_rc=3
+--- WAL state and promote DB-Replica 172.20.40.12 ---
+ERROR:  recovery is not in progress
+HINT:  Recovery control functions can only be executed during recovery.
+ pg_is_in_recovery | pg_last_wal_receive_lsn | pg_last_wal_replay_lsn 
+-------------------+-------------------------+------------------------
+ f                 | 0/8005B58               | 0/8005B58
+(1 row)
+
+promote_rc=1

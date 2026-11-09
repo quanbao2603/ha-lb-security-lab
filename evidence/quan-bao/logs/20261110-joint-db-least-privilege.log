@@ -1,0 +1,17 @@
+J-08 | DB-Primary (172.20.40.11) | 2026-11-10T04:24:09+07:00
+sudo -n -u postgres psql -c "ALTER USER app_user PASSWORD 'DemoPass123!';"
+PGPASSWORD='DemoPass123!' psql -U app_user -d ha_lab_db -c "INSERT INTO health_checks(node_name,status) VALUES ('DEMO-JOINT','OK') RETURNING id;"
+PGPASSWORD='DemoPass123!' psql -U app_user -d ha_lab_db -c "UPDATE health_checks SET status='OK' WHERE node_name='DEMO-JOINT';"
+PGPASSWORD='DemoPass123!' psql -U app_user -d ha_lab_db -c "DELETE FROM health_checks WHERE node_name='DEMO-JOINT';"
+PGPASSWORD='DemoPass123!' psql -U app_user -d ha_lab_db -c "DROP TABLE health_checks;"
+ERROR:  permission denied for table health_checks
+ERROR:  must be owner of table health_checks
+ALTER ROLE
+ id 
+----
+ 39
+(1 row)
+
+INSERT 0 1
+UPDATE 1
+rc=1
