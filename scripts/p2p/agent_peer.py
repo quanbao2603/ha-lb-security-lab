@@ -307,6 +307,16 @@ class ChannelManager:
                     return True, rtt
         except Exception:
             pass
+        # Fallback probe to /api/health for PAL-v1 backward compatibility
+        try:
+            t0 = time.time()
+            req = urllib.request.Request(f"{url}/api/health", headers={"User-Agent": "PeerAgent-Probe/2.0"})
+            with urllib.request.urlopen(req, timeout=timeout) as resp:
+                if resp.status == 200:
+                    rtt = round((time.time() - t0) * 1000.0, 2)
+                    return True, rtt
+        except Exception:
+            pass
         return False, 0.0
 
     def start_heartbeat_loop(self):
@@ -917,8 +927,16 @@ def main():
     client = PeerClient(config, channel_mgr, ledger)
 
     if args.status:
-        channel_mgr.probe_with_presence(config.primary_url)
-        channel_mgr.probe_with_presence(config.fallback_url)
+        p_ok, p_rtt = channel_mgr.probe_with_presence(config.primary_url)
+        ledger.update_channel_stat(ChannelType.PRIMARY, "HEALTHY" if p_ok else "OFFLINE", p_rtt)
+        f_ok, f_rtt = channel_mgr.probe_with_presence(config.fallback_url)
+        ledger.update_channel_stat(ChannelType.FALLBACK, "HEALTHY" if f_ok else "OFFLINE", f_rtt)
+        if p_ok:
+            channel_mgr.active_channel = ChannelType.PRIMARY
+        elif f_ok:
+            channel_mgr.active_channel = ChannelType.FALLBACK
+        else:
+            channel_mgr.active_channel = ChannelType.OFFLINE
         stats = ledger.get_channel_stats()
         print("\n=== PEERAGENT LINK (PAL-v2) STATUS ===")
         print(f"Node ID:          {config.node_id}")
@@ -929,8 +947,10 @@ def main():
         sys.exit(0)
 
     if args.presence:
-        channel_mgr.probe_with_presence(config.primary_url)
-        channel_mgr.probe_with_presence(config.fallback_url)
+        p_ok, p_rtt = channel_mgr.probe_with_presence(config.primary_url)
+        ledger.update_channel_stat(ChannelType.PRIMARY, "HEALTHY" if p_ok else "OFFLINE", p_rtt)
+        f_ok, f_rtt = channel_mgr.probe_with_presence(config.fallback_url)
+        ledger.update_channel_stat(ChannelType.FALLBACK, "HEALTHY" if f_ok else "OFFLINE", f_rtt)
         print_presence_dashboard(config, ledger)
         sys.exit(0)
 
