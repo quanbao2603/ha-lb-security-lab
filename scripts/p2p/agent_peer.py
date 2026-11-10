@@ -60,8 +60,8 @@ class AgentPresenceState:
 
 class PeerConfig:
     def __init__(self, node_id="site-b-minhhung", peer_id="site-a-quanbao",
-                 primary_url="http://192.168.1.7:8088",
-                 fallback_url="http://100.82.115.17:8088",
+                 primary_url="http://100.82.115.17:8088",
+                 fallback_url="http://192.168.1.7:8088",
                  port=DEFAULT_PORT, db_path=DEFAULT_DB):
         self.node_id = node_id
         self.peer_id = peer_id
@@ -662,6 +662,8 @@ class PALRequestHandler(http.server.BaseHTTPRequestHandler):
             session_id = data.get("session_id")
             peer_node = data.get("node_id")
 
+            print(f"\n[AI-P2P-HANDSHAKE] [{peer_node}] Step={step} Session={session_id[:8]}\n", flush=True)
+
             if step == "SYN":
                 caps = ["task_lifecycle", "progress_streaming", "telemetry", "wire_file", "rpc_audit"]
                 self.server.ledger.record_session(session_id, peer_node, "SYN_RECEIVED", caps)
@@ -686,7 +688,7 @@ class PALRequestHandler(http.server.BaseHTTPRequestHandler):
                 data.get("current_task", ""),
                 data.get("vms", []),
                 data.get("metrics", ""),
-                "PRIMARY",
+                "TAILSCALE",
                 0.0
             )
             tele = LocalSystemTelemetry.get_telemetry()
@@ -706,6 +708,8 @@ class PALRequestHandler(http.server.BaseHTTPRequestHandler):
             action = data.get("action", "")
             params = data.get("params", {})
             initiator = data.get("initiator", "unknown")
+
+            print(f"\n[AI-P2P-TASK-RECEIVED] [{initiator}] Assigned: '{title}' (Action: {action}) ID={t_id[:8]}\n", flush=True)
 
             # 1. IMMEDIATE RECEIPT ACK (< 50ms)
             self.server.ledger.create_or_update_task(t_id, title, action, initiator, self.server.config.node_id, TaskState.RECEIVED, progress=5, stage="Queued for Execution")
@@ -730,6 +734,9 @@ class PALRequestHandler(http.server.BaseHTTPRequestHandler):
 
             channel = self.headers.get("X-Channel", self.server.channel_mgr.active_channel)
             is_new = self.server.ledger.record_incoming(msg_id, sender, receiver, msg_type, payload, channel, checksum)
+
+            text_msg = payload.get("content", str(payload)) if isinstance(payload, dict) else str(payload)
+            print(f"\n[AI-P2P-INCOMING] [{sender}] (ID: {msg_id[:8]}): {text_msg}\n", flush=True)
 
             self._send_json(200, {
                 "ack": True,
@@ -780,15 +787,19 @@ class PALRequestHandler(http.server.BaseHTTPRequestHandler):
 
         try:
             ledger.create_or_update_task(task_id, title, action, "remote", self.server.config.node_id, TaskState.IN_PROGRESS, progress=25, stage="Validating parameters & prerequisites")
+            print(f"[AI-P2P-TASK-PROGRESS] Task [{task_id[:8]}] 25% | Validating parameters", flush=True)
             time.sleep(0.5)
 
             ledger.create_or_update_task(task_id, title, action, "remote", self.server.config.node_id, TaskState.IN_PROGRESS, progress=60, stage=f"Running action: {action}")
+            print(f"[AI-P2P-TASK-PROGRESS] Task [{task_id[:8]}] 60% | Running {action}", flush=True)
             result_data = self.server.rpc_dispatcher(action, params)
             time.sleep(0.5)
 
             ledger.create_or_update_task(task_id, title, action, "remote", self.server.config.node_id, TaskState.COMPLETED, progress=100, stage="Execution Complete", result=result_data)
+            print(f"\n[AI-P2P-TASK-COMPLETED] Task [{task_id[:8]}] COMPLETED | Result: {result_data}\n", flush=True)
         except Exception as e:
             ledger.create_or_update_task(task_id, title, action, "remote", self.server.config.node_id, TaskState.FAILED, progress=100, stage="Execution Failed", error=str(e))
+            print(f"\n[AI-P2P-TASK-FAILED] Task [{task_id[:8]}] FAILED | Error: {e}\n", flush=True)
         finally:
             mgr.local_agent_state = old_state
             mgr.local_current_task = old_task
@@ -898,8 +909,9 @@ def main():
     parser.add_argument("--self-test", action="store_true", help="Run automated self-check assertions")
     parser.add_argument("--node-id", default="site-b-minhhung", help="Local node identity")
     parser.add_argument("--peer-id", default="site-a-quanbao", help="Remote peer identity")
-    parser.add_argument("--primary-url", default="http://192.168.1.7:8088", help="Primary LAN target URL")
-    parser.add_argument("--fallback-url", default="http://100.82.115.17:8088", help="Fallback Tailscale target URL")
+    parser.add_argument("--peer-url", type=str, help="Target peer base URL (overrides primary)")
+    parser.add_argument("--primary-url", default="http://100.82.115.17:8088", help="Primary Tailscale target URL")
+    parser.add_argument("--fallback-url", default="http://192.168.1.7:8088", help="Fallback LAN target URL")
     parser.add_argument("--port", type=int, default=DEFAULT_PORT, help="Listen port (default: 8088)")
     parser.add_argument("--handshake", action="store_true", help="Execute 3-Way Session Handshake with peer")
     parser.add_argument("--dispatch-task", type=str, nargs="+", help="Dispatch task with live progress: <title> <action> [k=v ...]")
@@ -915,10 +927,11 @@ def main():
     if args.self_test:
         sys.exit(run_self_test())
 
+    primary_target = args.peer_url if args.peer_url else args.primary_url
     config = PeerConfig(
         node_id=args.node_id,
         peer_id=args.peer_id,
-        primary_url=args.primary_url,
+        primary_url=primary_target,
         fallback_url=args.fallback_url,
         port=args.port
     )
