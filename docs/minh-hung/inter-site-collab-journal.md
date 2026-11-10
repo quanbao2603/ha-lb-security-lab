@@ -444,3 +444,4 @@
 | `2026-11-10T07:21:09` | **Agent Remote Procedure Call (RPC)** | Gọi hàm `get_system_status` qua kênh LAN `192.168.1.7:8088`: RTT `36.63 ms`, trả về đầy đủ tele-presence của máy Bảo | **PASS (WIRE-SPEED ✓)** |
 | `2026-11-10T07:21:30` | **Wire-Speed File Transfer** | Chuyển tệp nhị phân `p2p_joint_verified.json` qua LAN: hoàn tất trong `0.05s`, mã băm `SHA-256` khớp 100% | **PASS (VERIFIED ✓)** |
 | `2026-11-10T07:21:44` | **Reliable Message Delivery** | Gửi thông điệp xác nhận hoàn tất dự án: Bảo nhận và phản hồi `ACK` ngay lập tức (`status: delivered`) | **PASS (ACKED ✓)** |
+| `2026-11-10T08:18:30` | **WhoAmI & Anti-Loopback Handshake** | Xác thực chéo `whoami` & Tailscale IP: Local (`Administrator@Iphone`, `100.76.150.63`) <==> Remote (`QuanBao@QuanBao-PC`, `100.82.115.17`). RTT `41.87 ms`. | **PASS (ANTI-LOOP VERIFIED ✓)** |
