@@ -1,164 +1,180 @@
-# Shared Cybersecurity HA Lab
+# Shared Cybersecurity High-Availability Lab
 
-## Mục đích
+## Tổng quan
 
-Repository này chứa thiết kế, cấu hình, bằng chứng kiểm thử và tài liệu cho bài lab an ninh mạng dùng chung của hai thành viên: Quan Bảo và Minh Hùng. Mục tiêu là triển khai trong một tuần trên VMware Workstation, sử dụng Tailscale làm kênh liên kết giữa hai máy nhưng vẫn giữ firewall lab là điểm kiểm soát truy cập chính.
+Mô hình thực hành về an ninh mạng, cân bằng tải và tính sẵn sàng cao trên VMware Workstation. Hai site kết nối qua Tailscale; firewall là điểm kiểm soát truy cập chính, còn Web và Database không cài Tailscale trực tiếp để hạn chế bypass.
 
-## Nguyên tắc kiến trúc
+## Mục tiêu
 
-- VMware Workstation là nền tảng ảo hóa.
-- Mỗi máy chạy một Linux Transit VM có Tailscale, IP forwarding và subnet routing.
-- Không cài Tailscale lên từng web/database VM trong mô hình chính để tránh bypass firewall.
-- Mạng WAN mô phỏng, DMZ, APP, DATABASE và MANAGEMENT được tách riêng.
-- Firewall dùng nguyên tắc deny-by-default, chỉ mở đúng luồng cần thiết.
-- Mọi bài kiểm thử chỉ thực hiện trong các mạng lab được cô lập và có sự đồng thuận của nhóm.
+- Phân vùng mạng và kiểm soát truy cập giữa các trust boundary.
+- Cân bằng tải HTTPS và web failover.
+- PostgreSQL streaming replication, least privilege và database failover.
+- Ghi log tập trung, negative security testing và đối chiếu bằng chứng.
 
-## Cấu trúc thư mục
+## Kiến trúc
 
-| Thư mục | Ý nghĩa |
+```text
+Site A                                      Site B
+Transit-A 172.20.21.5                      Transit-B 172.20.20.6
+     |                                            |
+LB-A / Web VIP 172.20.21.100             Firewall-A / Firewall-B
+     |                                      /       |        \
+Web-A, Web-B                         DATABASE   MANAGEMENT   DMZ
+                                     .40.11/.12  .50.10      Gateway .1
+```
+
+PAL-v2 là kênh điều phối tùy chọn giữa hai máy host Windows qua LAN và Tailscale. PAL-v2 không thay thế firewall, SSH hoặc Tailscale ACL.
+
+## Phân vùng mạng
+
+| Vùng | Subnet | Thành phần tiêu biểu |
+|---|---|---|
+| WAN-LAB | `172.20.10.0/24` | Test-Client |
+| DMZ / Transit-B | `172.20.20.0/24` | Transit-B `.6`, gateway `.1` |
+| Site A service | `172.20.21.0/24` | Transit-A `.5`, LB/Web, VIP `.100` |
+| APP | `172.20.30.0/24` | Vùng ứng dụng mở rộng |
+| DATABASE | `172.20.40.0/24` | DB-Primary `.11`, DB-Replica `.12` |
+| MANAGEMENT | `172.20.50.0/24` | Firewall `.2/.3`, Log-Monitor `.10` |
+
+Transit-B quảng bá `172.20.20.0/24`, `172.20.40.0/24` và `172.20.50.0/24`. Route nội bộ thực tế trên Transit-B sử dụng:
+
+```text
+172.20.0.0/16 via 172.20.20.1
+```
+
+## Thành phần hệ thống
+
+### Site A
+
+- **Transit-A:** subnet router và IP forwarding cho Site A.
+- **LB-A:** HAProxy/Keepalived, HTTPS termination, VIP và health check.
+- **Web-A/Web-B:** `/healthz`, node identity, access log và SSH hardening.
+- **Test-Client:** nguồn kiểm thử chức năng và negative security.
+
+### Site B
+
+- **Transit-B:** subnet router, forwarding và anti-bypass filtering.
+- **Firewall-A/B:** nftables, NAT, deny-by-default, logging và gateway VIP.
+- **DB-Primary/DB-Replica:** PostgreSQL 16 và streaming replication.
+- **Log-Monitor:** rsyslog tập trung và điểm quản trị MANAGEMENT.
+
+## Kiểm soát an ninh
+
+Firewall sử dụng deny-by-default:
+
+- WAN-LAB chỉ được truy cập dịch vụ công khai qua VIP và port được chỉ định.
+- Truy cập trực tiếp Web IP, Database và Management bị chặn và ghi log.
+- Web chỉ được truy cập PostgreSQL trên port `5432` tới đúng DB node.
+- DB replication chỉ mở giữa Primary và Replica.
+- SSH quản trị đi từ MANAGEMENT hoặc jump path được kiểm soát.
+- Syslog được gửi về Log-Monitor trên port `514`.
+
+Các log prefix chính:
+
+```text
+FW-ALLOW-WAN-VIP
+FW-DENY-WAN-DIRECT
+FW-ALLOW-WEB-DB
+FW-ALLOW-DB-REPL
+FW-ALLOW-MGMT-SSH
+FW-DEFAULT-DENY
+FW-DENY-INPUT-DEFAULT
+```
+
+## Phương pháp kiểm thử
+
+### Routing và transit
+
+- Xác minh peer, advertised routes và `ip_forward`.
+- Kiểm tra route nội bộ đi qua firewall gateway.
+- Kiểm tra không có đường bypass tới Database hoặc Management.
+
+### Web và Load Balancer
+
+- `/healthz` trả HTTP `200` trên cả hai Web node.
+- HTTPS VIP phân phối request tới Web-A và Web-B.
+- Khi Web-A dừng, Web-B tiếp tục phục vụ.
+- Khi Web-A khôi phục, health check đưa node trở lại pool.
+- Truy cập trực tiếp Web IP bị chặn.
+
+### Database
+
+- Kiểm tra `pg_is_in_recovery()` trên Primary và Replica.
+- Đối chiếu dữ liệu giữa hai node.
+- Xác minh `app_user` không có quyền DELETE/DROP ngoài phạm vi cấp.
+- Dừng Primary, promote Replica và kiểm tra ghi dữ liệu.
+- Rejoin Primary cũ bằng `pg_basebackup` theo runbook.
+
+### Firewall và evidence
+
+- DB port từ nguồn không được phép phải timeout hoặc bị DROP.
+- SSH trực tiếp tới Firewall từ nguồn ngoài MANAGEMENT phải bị từ chối.
+- Mỗi kiểm thử ghi node thực hiện, thời gian, lệnh, kết quả và log liên quan.
+- Ảnh chụp dùng tên `YYYYMMDD-owner-test-name`.
+
+## Kết quả xác minh hiện tại
+
+| Hạng mục | Trạng thái | Ghi chú |
+|---|---|---|
+| PAL-v2 LAN/Tailscale | PASS | Handshake thành công, hai kênh HEALTHY |
+| Transit-B routing | PASS | Route `/16` qua `172.20.20.1`, forwarding bật |
+| Negative DB `5432` | PASS | `FW-DEFAULT-DENY` |
+| Direct SSH tới Firewall | PASS | `FW-DENY-INPUT-DEFAULT` |
+| ICMP tới DB | PASS | Được policy cho phép |
+| DB replication | PASS | Primary `f`, Replica `t`, dữ liệu đồng bộ |
+| Least privilege | PASS | INSERT thành công, DELETE bị từ chối |
+| DB failover | PASS | Replica promote và ghi mới thành công |
+| Central logging | PASS | Log được thu thập theo từng node |
+| Firewall HA failover | GAP | Chưa xác minh được `keepalived.service` |
+
+## Giới hạn hiện tại
+
+1. Cơ chế giữ và chuyển Gateway VIP giữa Firewall-A và Firewall-B cần được xác nhận bằng bằng chứng chuyển VIP thực tế.
+2. VIP thiết kế ban đầu `172.20.20.100` phải phân biệt với VIP Web thực tế Site A `172.20.21.100`.
+3. Sau khi Replica được promote, Primary cũ phải rejoin bằng `pg_basebackup`; không khởi động độc lập để tránh split-brain.
+4. `scripts/p2p/peer_agent.db` và `scripts/p2p/transfers/` là dữ liệu runtime cục bộ, không phải source code bắt buộc.
+
+## Cấu trúc repository
+
+| Đường dẫn | Nội dung |
 |---|---|
-| `docs/` | Kế hoạch, quyết định kiến trúc, checklist triển khai và báo cáo nghiệm thu. |
-| `lab/network/` | Sơ đồ mạng, bảng IP, thiết kế VMnet và routing. |
-| `lab/transit/` | Thiết kế hai Linux Transit VM và cấu hình Tailscale/subnet route. |
-| `lab/firewall/` | Rule matrix, NAT, policy, hardening và log firewall. |
-| `lab/load-balancer/` | HAProxy/Keepalived và health-check. |
-| `lab/web/` | Thiết kế và cấu hình hai web/app node. |
-| `lab/database/` | Replication, quyền truy cập và kế hoạch failover database. |
-| `lab/monitoring/` | Logging, giám sát tối giản và cảnh báo. |
-| `lab/testing/` | Kịch bản kiểm thử chức năng, bảo mật, failover và khôi phục. |
-| `configs/vmware/` | Thông số VM, VMnet, adapter và resource profile. |
-| `configs/tailscale/` | ACL, advertised routes và hướng dẫn phê duyệt route. |
-| `configs/firewall/` | Bản cấu hình/rule export của firewall, không lưu secret. |
-| `scripts/` | Script cài đặt, kiểm tra kết nối và thu thập bằng chứng sau này. |
-| `evidence/` | Ảnh chụp, log, output lệnh và biên bản kiểm thử. Không lưu dữ liệu nhạy cảm. |
-| `diagrams/` | Sơ đồ kiến trúc và luồng dữ liệu dạng nguồn hoặc ảnh xuất. |
+| `configs/` | Cấu hình VM, Tailscale và firewall |
+| `docs/` | Thiết kế, giao thức và runbook |
+| `lab/network/` | Topology, IP plan và VMnet |
+| `lab/transit/` | Transit-A/Transit-B và subnet routing |
+| `lab/firewall/` | Rule matrix, NAT và recovery |
+| `lab/load-balancer/` | HAProxy, VIP và health check |
+| `lab/web/` | Web node và hardening |
+| `lab/database/` | Replication, privilege và recovery |
+| `lab/monitoring/` | Syslog và log tập trung |
+| `lab/testing/` | Test plan và acceptance criteria |
+| `scripts/` | Provisioning, verification và PAL-v2 |
+| `evidence/` | Ảnh, log và biên bản kiểm thử |
+| `diagrams/` | Sơ đồ kiến trúc |
 
-## Tài liệu chính
+## Tái lập nhanh
 
-- `lab-v2.html`: bản lab thực hành mới, bao gồm mục tiêu, kiến trúc, phân chia việc, cấu hình tài nguyên, firewall policy, kế hoạch một tuần, kiểm thử và tiêu chí nghiệm thu.
-- `detaiLab.html`: bản lab cũ được giữ lại để đối chiếu lịch sử.
-- `lab-manifest.yml`: thông tin tổng quát và quy ước phiên bản của lab.
+1. Tạo VM và VMnet theo `configs/vmware/`.
+2. Cấu hình IP, hostname, SSH key-only và timezone.
+3. Cấu hình Transit-A/Transit-B, Tailscale routes và ACL.
+4. Nạp firewall policy, NAT và logging.
+5. Cài Load Balancer, Web, PostgreSQL và Log-Monitor.
+6. Chạy runbook trong `lab/` và lưu evidence theo timestamp.
+7. Đối chiếu acceptance matrix trước khi nghiệm thu.
 
-## Quy tắc cộng tác
+```bash
+python scripts/p2p/agent_peer.py --self-test
+python scripts/p2p/agent_peer.py --status
+python scripts/p2p/agent_peer.py --handshake
+sudo -u postgres psql -t -c "SELECT pg_is_in_recovery();"
+sudo nft list ruleset
+ip route
+```
 
-1. Mỗi thay đổi phải ghi rõ mục tiêu và phạm vi trong commit/PR.
-2. Không commit token Tailscale, mật khẩu, private key, file state hoặc thông tin thật.
-3. Mọi thay đổi firewall phải cập nhật đồng thời rule matrix và kịch bản kiểm thử.
-4. Bằng chứng kiểm thử phải ghi thời gian, máy chạy, lệnh thực hiện và kết quả.
-5. Chỉ sử dụng công cụ kiểm thử trong mạng lab được cô lập.
+## Nguyên tắc an toàn
 
-## Phân công ownership và phạm vi chỉnh sửa
-
-Mục tiêu của cách chia này là mỗi người có vùng làm việc riêng, hạn chế tối đa việc cùng sửa một file. Hai người không sửa trực tiếp cùng một file trên cùng branch.
-
-### Vùng làm việc của Quan Bảo
-
-| Đường dẫn | Nội dung Quan Bảo phụ trách |
-|---|---|
-| `lab/transit/site-a/` | Transit-A, IP forwarding, route phía máy Quan Bảo và checklist kết nối. |
-| `lab/load-balancer/` | HAProxy, Keepalived, VIP, health check, stats nội bộ. |
-| `lab/web/` | Web-A/Web-B, trang nhận diện node, `/healthz`, hardening web và access log. |
-| `lab/testing/quan-bao/` | Test từ WAN/DMZ, test load balancing, web failover, expected/actual. |
-| `evidence/quan-bao/` | Ảnh chụp và log do Quan Bảo thu thập. |
-| `docs/quan-bao/` | Nhật ký triển khai, runbook LB/web và phần báo cáo được giao. |
-| `configs/vmware/quan-bao/` | Thông số VMnet/VM của các máy Quan Bảo chạy. |
-| `scripts/quan-bao/` | Script kiểm tra web, VIP, health check và thu thập log phía client. |
-
-### Vùng làm việc của Minh Hùng
-
-| Đường dẫn | Nội dung Minh Hùng phụ trách |
-|---|---|
-| `lab/transit/site-b/` | Transit-B, IP forwarding, route phía máy Minh Hùng và checklist kết nối. |
-| `lab/firewall/` | Zone, NAT, deny-by-default, rule matrix, logging, backup/restore policy. |
-| `lab/database/` | DB-Primary/Replica, replication, user privilege, promote và recovery. |
-| `lab/monitoring/` | Syslog, health check, log retention và dashboard tối giản. |
-| `lab/testing/minh-hung/` | Test firewall, routing, DB replication/failover và firewall recovery. |
-| `evidence/minh-hung/` | Ảnh chụp và log do Minh Hùng thu thập. |
-| `docs/minh-hung/` | Nhật ký triển khai, runbook firewall/database và phần báo cáo được giao. |
-| `configs/vmware/minh-hung/` | Thông số VMnet/VM của các máy Minh Hùng chạy. |
-| `scripts/minh-hung/` | Script kiểm tra route, port policy, DB replication và log. |
-
-### Vùng dùng chung — phải review trước khi sửa
-
-| Đường dẫn/file | Quy tắc |
-|---|---|
-| `README.md` | Mỗi người chỉ thêm phần thuộc ownership; thay đổi cấu trúc phải báo người còn lại. |
-| `lab-v2.html` | Chỉ cập nhật sau khi hai người thống nhất nội dung; không sửa đồng thời. |
-| `lab/network/` | Quan Bảo đề xuất sơ đồ DMZ, Minh Hùng review đường route/firewall; merge sau khi cả hai đồng ý. |
-| `configs/tailscale/` | Minh Hùng giữ ACL/route policy, Quan Bảo kiểm thử route từ site A; mọi thay đổi phải ghi lý do. |
-| `diagrams/` | Có thể tạo file mới theo tên người tạo; file tổng hợp chỉ sửa qua PR. |
-| `lab/testing/` | Mỗi người viết test trong thư mục riêng; file `acceptance-matrix.md` là file chung, chỉ cập nhật khi đã đối chiếu. |
-| `evidence/` | Không ghi đè evidence của nhau; đặt tên `YYYYMMDD-owner-test-name`. |
-
-## Phân công chi tiết trong 7 ngày
-
-### Ngày 1 — Baseline và chuẩn bị VM
-
-**Quan Bảo:** tạo Transit-A, LB-A, Web-A, Web-B và Test-Client; đặt hostname, snapshot `day-1-clean`; ghi cấu hình VM vào `configs/vmware/quan-bao/`; tạo trang web nhận diện riêng cho Web-A/Web-B.
-
-**Minh Hùng:** tạo Transit-B, Firewall-A, Firewall-B, DB-Primary, DB-Replica và Log-Monitor theo profile bật tuần tự; ghi cấu hình vào `configs/vmware/minh-hung/`; tạo snapshot baseline và bảng resource.
-
-**Đầu ra:** cả hai thống nhất tên VM, subnet, hostname, timezone, snapshot và quy ước đặt tên file.
-
-### Ngày 2 — Transit và phân vùng mạng
-
-**Quan Bảo:** cấu hình adapter/VMnet phía site A, IP Transit-A, bật IP forwarding, kiểm tra route cục bộ; ghi kết quả vào `lab/transit/site-a/`.
-
-**Minh Hùng:** cấu hình Transit-B, Tailscale subnet route phía site B, firewall transit tối thiểu và quy trình approve route; ghi vào `lab/transit/site-b/` và `configs/tailscale/`.
-
-**Đầu ra:** ping/route giữa hai transit hoạt động; các subnet chưa được advertise không truy cập được; có ảnh/log chứng minh.
-
-### Ngày 3 — Firewall và dịch vụ edge
-
-**Quan Bảo:** cài HAProxy/Keepalived trên LB-A, cấu hình VIP, backend Web-A/Web-B, health check và HTTPS lab; viết runbook LB.
-
-**Minh Hùng:** cấu hình zone, NAT, port-forward giới hạn, deny-by-default, logging và rule chống truy cập trực tiếp DB/MGMT; lập firewall rule matrix.
-
-**Đầu ra:** WAN-LAB chỉ vào VIP; Web IP trực tiếp, DB và SSH trái phép bị chặn; tất cả có log.
-
-### Ngày 4 — Web, database và logging
-
-**Quan Bảo:** harden Web-A/Web-B, tắt dịch vụ thừa, cấu hình SSH key-only, access log, `/healthz`, node identity; viết script kiểm tra VIP và health check.
-
-**Minh Hùng:** cấu hình DB replication, user riêng cho replication/app, bind address, quyền tối thiểu, backup và kiểm tra replica; nhận log tập trung tối giản.
-
-**Đầu ra:** request qua VIP tới cả hai web node; dữ liệu primary xuất hiện trên replica; app chỉ mở DB port cần thiết.
-
-### Ngày 5 — Failover và recovery
-
-**Quan Bảo:** dừng Web-A, chứng minh LB loại node lỗi; kiểm tra Keepalived/VIP theo profile; lưu evidence vào `evidence/quan-bao/`.
-
-**Minh Hùng:** dừng DB-Primary, promote replica theo runbook; mô phỏng Firewall-A lỗi và chạy quy trình khôi phục/đổi node; lưu evidence vào `evidence/minh-hung/`.
-
-**Đầu ra:** dịch vụ tiếp tục hoạt động theo phạm vi thiết kế; có thời gian bắt đầu/kết thúc và giới hạn downtime.
-
-### Ngày 6 — Kiểm thử bảo mật và sửa lỗi
-
-**Quan Bảo:** chạy test negative từ Test-Client: DB trực tiếp, SSH WAN, Web bypass, HTTPS certificate và load distribution; không tự sửa firewall của Minh Hùng trên branch của mình.
-
-**Minh Hùng:** đối chiếu firewall log, Tailscale ACL, route table, DB log và quyền user; sửa policy trong vùng ownership và thông báo thay đổi cho Quan Bảo.
-
-**Đầu ra:** ma trận expected/actual, danh sách lỗi, cách khắc phục và test chạy lại sau sửa.
-
-### Ngày 7 — Tích hợp, review và demo
-
-**Quan Bảo:** tổng hợp phần web/LB, sơ đồ luồng request và kịch bản demo VIP/web failover; cập nhật phần được giao trong `lab-v2.html` sau khi Minh Hùng review.
-
-**Minh Hùng:** tổng hợp firewall/DB/Tailscale, sơ đồ trust boundary và kịch bản demo deny/log/DB recovery; review toàn bộ cấu hình không chứa secret.
-
-**Cả hai:** chạy acceptance matrix, kiểm tra link/tên file, tạo backup cấu hình đã loại secret và diễn tập demo theo đúng thứ tự.
-
-## Quy tắc GitHub để tránh xung đột
-
-1. Không làm việc trực tiếp trên `main`. Dùng branch `feature/quan-bao-*` hoặc `feature/minh-hung-*`.
-2. Mỗi branch chỉ sửa vùng ownership của mình. Nếu cần sửa file chung, mở issue/trao đổi trước và ghi rõ phần dòng nào sẽ thay đổi.
-3. Mỗi commit chỉ chứa một nhóm thay đổi liên quan, ví dụ `add web health checks` hoặc `harden firewall rules`; không trộn evidence với cấu hình không liên quan.
-4. Trước khi push: `git pull --rebase origin main`, kiểm tra `git diff`, kiểm tra không có secret rồi mới push.
-5. Mỗi PR phải có người còn lại review. Không tự merge PR của chính mình.
-6. Nếu cần chỉnh `README.md` hoặc `lab-v2.html`, người thực hiện thông báo trước; người còn lại không sửa file đó cho tới khi PR được merge.
-7. Không commit file `.env`, token Tailscale, private key, password, VMware lock/state hoặc log chứa credential.
-8. Evidence không ghi đè: dùng tên `YYYYMMDD-owner-test-name` và ghi metadata trong file `.md` đi kèm.
-
-## Trạng thái
-
-Repository đang ở giai đoạn khung kiến trúc và kế hoạch. Code triển khai, automation và export cấu hình sẽ được bổ sung theo các ownership ở trên; mọi thay đổi firewall và routing phải đi kèm test/evidence tương ứng.
+- Chỉ kiểm thử trong mạng lab cô lập và được nhóm cho phép.
+- Không commit password, token, private key, file `.env`, VMware lock/state hoặc log chứa credential.
+- Không chạy lệnh phá dữ liệu trên DB nếu chưa xác định đúng VM và chưa có snapshot/backup.
+- Dừng Primary cũ trước khi promote Replica để tránh split-brain.
+- Mọi kết luận PASS/FAIL phải có output hoặc log làm bằng chứng.
