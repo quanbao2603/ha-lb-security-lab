@@ -431,3 +431,16 @@
 - `2026-11-10T04:44:53`: `[FAILOVER-TEST] DB-Replica chuyển thành Master mới (pg_is_in_recovery = f), app_user ghi thành công bản ghi BAO-FAILOVER-1110 (id=73) -> PASS`
 - `2026-11-10T04:46:50`: `[AI-COLLAB] MinhHung-AI hướng dẫn Bao-AI quy trình DB Rejoin qua pg_basebackup và giải thích cơ chế Firewall Gateway IP Migration.`
 - `2026-11-10T04:47:40`: `[RECOVERY-TEST] DB-Primary kích hoạt lại làm Standby node (pg_is_in_recovery = t) -> PASS`
+
+---
+
+## 3. Nhật ký Nghiệm thu Giao thức P2P Đa Kênh (PeerAgent Link v2.0 - PAL-v2)
+
+| Thời gian (ISO) | Hành động kiểm thử | Chi tiết kỹ thuật & Dữ liệu thực tế | Đánh giá |
+| :--- | :--- | :--- | :---: |
+| `2026-11-10T07:20:00` | **3-Way Session Handshake** | `SYN` ➔ `SYN-ACK` ➔ `ACK`. Thiết lập Session `7a235bea` thành công giữa `site-b-minhhung` và `site-a-quanbao`. RTT: `70.62 ms` | **PASS (ESTABLISHED ✓)** |
+| `2026-11-10T07:20:30` | **Tele-Presence Dashboard** | Đồng bộ thời gian thực trạng thái AI, danh sách VM và RAM của cả 2 máy qua kênh `PRIMARY_LAN` (RTT: `50.41 ms`) | **PASS (SYNC ✓)** |
+| `2026-11-10T07:20:53` | **Task Lifecycle & Progress Stream** | Phân công task `"Verify Ping to Site B"`: Phản hồi `RECEIVED` trong `68 ms` ➔ Stream tiến độ `25%` ➔ `60%` ➔ `100% (COMPLETED)` kèm kết quả JSON verified | **PASS (NO-GAP ✓)** |
+| `2026-11-10T07:21:09` | **Agent Remote Procedure Call (RPC)** | Gọi hàm `get_system_status` qua kênh LAN `192.168.1.7:8088`: RTT `36.63 ms`, trả về đầy đủ tele-presence của máy Bảo | **PASS (WIRE-SPEED ✓)** |
+| `2026-11-10T07:21:30` | **Wire-Speed File Transfer** | Chuyển tệp nhị phân `p2p_joint_verified.json` qua LAN: hoàn tất trong `0.05s`, mã băm `SHA-256` khớp 100% | **PASS (VERIFIED ✓)** |
+| `2026-11-10T07:21:44` | **Reliable Message Delivery** | Gửi thông điệp xác nhận hoàn tất dự án: Bảo nhận và phản hồi `ACK` ngay lập tức (`status: delivered`) | **PASS (ACKED ✓)** |
