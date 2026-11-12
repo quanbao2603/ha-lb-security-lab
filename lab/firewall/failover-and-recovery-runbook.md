@@ -174,10 +174,12 @@ sudo cp -a /etc/nftables.conf /etc/nftables.conf.bak.$TS
 ip -br addr > /tmp/addr.$TS.txt; ip route > /tmp/route.$TS.txt
 [ -f /etc/keepalived/keepalived.conf ] && sudo cp -a /etc/keepalived/keepalived.conf /etc/keepalived/keepalived.conf.bak.$TS
 
-# Firewall-A:
+# CHỈ chạy trên Firewall-A:
 sudo install -m 0644 -o root -g root configs/firewall/keepalived-fw-a.conf /etc/keepalived/keepalived.conf
-# Firewall-B:
+# CHỈ chạy trên Firewall-B:
 sudo install -m 0644 -o root -g root configs/firewall/keepalived-fw-b.conf /etc/keepalived/keepalived.conf
+# Cả hai node: nạp nftables mới (đã có rule accept VRRP protocol 112 từ peer, nếu không policy drop chặn advert và hai node cùng thành MASTER)
+sudo install -m 0644 -o root -g root configs/firewall/nftables-firewall.conf /etc/nftables.conf
 # Cả hai node (script phải thuộc root, không ai khác ghi được):
 sudo install -m 0755 -o root -g root configs/firewall/keepalived-healthcheck.sh /etc/keepalived/keepalived-healthcheck.sh
 ```
@@ -192,16 +194,25 @@ sudo /etc/keepalived/keepalived-healthcheck.sh && echo "health OK"
 
 ### 7.4 Thứ tự khởi động
 
-Gỡ các IP `.1` gán thủ công khỏi `Firewall-A` (như Bước 2 mục 4) để Keepalived tự gán, rồi:
+Baseline: `Firewall-A` đang giữ 5 IP `.1` gán thủ công, `Firewall-B` không giữ IP `.1` nào. Trên `Firewall-A`, gỡ 5 IP `.1` thủ công (như Bước 2 mục 4) để Keepalived tự gán. Các lệnh dưới đây chạy THEO TỪNG NODE, đúng thứ tự:
 
 ```bash
-# 1) Firewall-B trước (BACKUP)
+# Bước 1 — chạy trên Firewall-B (BACKUP) trước; nạp nftables rồi bật keepalived
+sudo systemctl reload nftables || sudo systemctl restart nftables
 sudo systemctl enable --now keepalived
-# 2) Sau đó Firewall-A (MASTER)
+
+# Bước 2 — chạy trên Firewall-A (MASTER) sau; nạp nftables rồi bật keepalived
+sudo systemctl reload nftables || sudo systemctl restart nftables
 sudo systemctl enable --now keepalived
-# 3) Xác nhận CHỈ Firewall-A giữ đủ 5 VIP, Firewall-B không giữ VIP nào
-ip -br addr | grep -E '172\.20\.(10|20|30|40|50)\.1/'
+
+# Bước 3 — xác nhận sau ~5 giây
+# Trên Firewall-A: PHẢI in đúng 5 dòng (172.20.10.1, .20.1, .30.1, .40.1, .50.1)
+ip -br addr | grep -cE '172\.20\.(10|20|30|40|50)\.1/'    # Firewall-A: kỳ vọng 5
+# Trên Firewall-B: PHẢI là 0 (grep -c vẫn in 0 nhưng thoát mã 1, bình thường)
+ip -br addr | grep -cE '172\.20\.(10|20|30|40|50)\.1/'    # Firewall-B: kỳ vọng 0
 ```
+
+Nếu cả hai node đều giữ 5 VIP (split-brain), VRRP advert đang bị chặn: kiểm tra `sudo nft list chain inet filter input | grep vrrp` và `sudo tcpdump -ni <iface> proto 112`.
 
 ### 7.5 Failover tự động
 
