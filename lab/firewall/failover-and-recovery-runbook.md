@@ -194,7 +194,7 @@ sudo /usr/local/sbin/keepalived-healthcheck.sh && echo "health OK"
 
 ### 7.4 Thứ tự khởi động
 
-Baseline: `Firewall-A` đang giữ 5 IP `.1` gán thủ công, `Firewall-B` không giữ IP `.1` nào. Trên `Firewall-A`, gỡ 5 IP `.1` thủ công (như Bước 2 mục 4) để Keepalived tự gán. Các lệnh dưới đây chạy THEO TỪNG NODE, đúng thứ tự:
+Baseline: `Firewall-A` đang giữ 5 IP `.1` gán thủ công, `Firewall-B` không giữ IP `.1` nào. Lab PHẢI ở trạng thái idle (không có traffic client/streaming/DB đi qua firewall). Gỡ 5 IP `.1` thủ công trên `Firewall-A` (như Bước 2 mục 4) NGAY TRƯỚC khi bật Keepalived trên `Firewall-B`. Lưu ý: nếu `Firewall-B` khởi động trước khi `Firewall-A` gửi advert, `Firewall-B` có thể trở thành MASTER sau khi hết advert timeout và nhận 5 VIP; đây là hành vi bootstrap dự kiến, không phải lỗi. `Firewall-A` (priority 150) sẽ preempt khi được bật. Các lệnh dưới đây chạy THEO TỪNG NODE, đúng thứ tự:
 
 ```bash
 # Bước 1 — chạy trên Firewall-B (BACKUP) trước; nạp nftables rồi bật keepalived
@@ -205,7 +205,7 @@ sudo systemctl enable --now keepalived
 sudo systemctl reload nftables || sudo systemctl restart nftables
 sudo systemctl enable --now keepalived
 
-# Bước 3 — xác nhận sau ~5 giây
+# Bước 3 — xác nhận sau ~5 giây. Đây là cổng baseline: Firewall-A = MASTER, Firewall-B = BACKUP; chỉ sang test failover khi đạt trạng thái này
 # Trên Firewall-A: PHẢI in đúng 5 dòng (172.20.10.1, .20.1, .30.1, .40.1, .50.1)
 ip -br addr | grep -cE '172\.20\.(10|20|30|40|50)\.1/'    # Firewall-A: kỳ vọng 5
 # Trên Firewall-B: PHẢI là 0 (grep -c vẫn in 0 nhưng thoát mã 1, bình thường)
