@@ -17,3 +17,6 @@
 
 # Local evidence that may contain credentials
 .evidence-private/
+
+# Local worktrees
+.worktrees/
