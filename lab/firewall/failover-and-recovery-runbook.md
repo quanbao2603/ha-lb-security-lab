@@ -153,4 +153,71 @@ Lưu vào `evidence/minh-hung/YYYYMMDD-minh-hung-firewall-failover.md` gồm:
 - [ ] Kết quả truy cập `https://172.20.20.100` thành công và truy cập `172.20.40.11:5432` từ WAN bị chặn.
 - [ ] Trích xuất dòng log `[FW-ALLOW-WAN-VIP]` và `[FW-DENY-WAN-DB]` có timestamp tương ứng trên `Firewall-B`.
 
-<!-- ponytail: manual IP switchover + gratuitous ARP to fit sequential 6-7 VM RAM budget; upgrade to Keepalived VRRP + conntrackd when both Firewall-A and Firewall-B run 24/7 -->
+---
+
+## 7. Chuyển đổi Dự phòng Tự động bằng Keepalived (VRRP Unicast)
+
+> **Phân vai:** `keepalived` sở hữu và di chuyển các VIP `.1`; `nftables` sở hữu toàn bộ việc lọc gói. File `/etc/nftables.conf` giữ nguyên, giống hệt trên cả hai node. Thiết kế: `docs/superpowers/specs/2026-11-13-firewall-vrrp-unicast-design.md`.
+
+### 7.1 Cài đặt gói (cả hai node)
+
+```bash
+sudo apt-get update && sudo apt-get install -y keepalived
+```
+
+### 7.2 Sao lưu & đặt cấu hình
+
+```bash
+# Sao lưu trước khi thay đổi (cả hai node)
+TS=$(date +%Y%m%dT%H%M%S)
+sudo cp -a /etc/nftables.conf /etc/nftables.conf.bak.$TS
+ip -br addr > /tmp/addr.$TS.txt; ip route > /tmp/route.$TS.txt
+[ -f /etc/keepalived/keepalived.conf ] && sudo cp -a /etc/keepalived/keepalived.conf /etc/keepalived/keepalived.conf.bak.$TS
+
+# Firewall-A:
+sudo install -m 0644 -o root -g root configs/firewall/keepalived-fw-a.conf /etc/keepalived/keepalived.conf
+# Firewall-B:
+sudo install -m 0644 -o root -g root configs/firewall/keepalived-fw-b.conf /etc/keepalived/keepalived.conf
+# Cả hai node (script phải thuộc root, không ai khác ghi được):
+sudo install -m 0755 -o root -g root configs/firewall/keepalived-healthcheck.sh /etc/keepalived/keepalived-healthcheck.sh
+```
+
+### 7.3 Kiểm tra cấu hình (TRƯỚC khi khởi động dịch vụ)
+
+```bash
+sudo keepalived -t -f /etc/keepalived/keepalived.conf
+sudo nft -c -f /etc/nftables.conf
+sudo /etc/keepalived/keepalived-healthcheck.sh && echo "health OK"
+```
+
+### 7.4 Thứ tự khởi động
+
+Gỡ các IP `.1` gán thủ công khỏi `Firewall-A` (như Bước 2 mục 4) để Keepalived tự gán, rồi:
+
+```bash
+# 1) Firewall-B trước (BACKUP)
+sudo systemctl enable --now keepalived
+# 2) Sau đó Firewall-A (MASTER)
+sudo systemctl enable --now keepalived
+# 3) Xác nhận CHỈ Firewall-A giữ đủ 5 VIP, Firewall-B không giữ VIP nào
+ip -br addr | grep -E '172\.20\.(10|20|30|40|50)\.1/'
+```
+
+### 7.5 Failover tự động
+
+Dừng Keepalived trên `Firewall-A` (`sudo systemctl stop keepalived`) hoặc làm health-check thất bại (nftables dừng / `ip_forward=0`: priority giảm 60, 150 -> 90 < 100). `Firewall-B` tự nhận cả 5 VIP, không cần `ip addr add` thủ công. Ghi `T0`/`T1`, kiểm tra truy cập DB/SSH vẫn bị chặn và log deny vẫn xuất hiện trên firewall đang hoạt động.
+
+### 7.6 Failback
+
+Khởi động lại Keepalived trên `Firewall-A` (`sudo systemctl start keepalived`; sửa health-check nếu cần). Priority 150 > 100 nên `Firewall-A` (preempt mặc định) lấy lại cả 5 VIP; xác nhận bằng `ip -br addr` trên cả hai node.
+
+### 7.7 Rollback về quy trình thủ công
+
+```bash
+# Cả hai node
+sudo systemctl disable --now keepalived
+sudo rm -f /etc/keepalived/keepalived.conf /etc/keepalived/keepalived-healthcheck.sh
+# Sau đó dùng lại quy trình thủ công ở mục 4 và 5 (gán .1 + arping -U)
+```
+
+<!-- ponytail: manual switchover (sections 4-5) kept as rollback path; automatic failover via Keepalived VRRP unicast (section 7); add conntrackd when connection-state sync is required -->
