@@ -1,0 +1,121 @@
+VRRP Task 4 automatic failover/failback
+2026-11-15T12:07:30+07:00
+=== BASELINE fw-a ===
+Warning: Permanently added '172.20.50.2' (ED25519) to the list of known hosts.
+bash: line 1: /var/backups/firewall/vrrp-task4-20261115-120731/nftables.conf: Permission denied
+=== BASELINE fw-b ===
+Warning: Permanently added '172.20.50.3' (ED25519) to the list of known hosts.
+bash: line 1: /var/backups/firewall/vrrp-task4-20261115-120736/nftables.conf: Permission denied
+=== BASELINE RETRY after redirection diagnosis ===
+2026-11-15T12:08:09+07:00
+--- fw-a ---
+Warning: Permanently added '172.20.50.2' (ED25519) to the list of known hosts.
+active
+active
+eth0             UP             172.20.10.2/24 172.20.10.1/24 fe80::20c:29ff:fed2:6d77/64 
+eth1             UP             172.20.20.2/24 172.20.20.1/24 fe80::20c:29ff:fed2:6d81/64 
+eth2             UP             172.20.30.2/24 172.20.30.1/24 fe80::20c:29ff:fed2:6d8b/64 
+eth3             UP             172.20.40.2/24 172.20.40.1/24 fe80::20c:29ff:fed2:6d95/64 
+eth4             UP             172.20.50.2/24 172.20.50.1/24 fe80::20c:29ff:fed2:6d9f/64 
+backup=/var/backups/firewall/vrrp-task4-20261115-120810
+--- fw-b ---
+Warning: Permanently added '172.20.50.3' (ED25519) to the list of known hosts.
+active
+active
+no VIPs
+backup=/var/backups/firewall/vrrp-task4-20261115-120812
+=== FAILOVER T0: stop Keepalived on fw-a ===
+T0=2026-11-15T12:09:11+07:00
+Warning: Permanently added '172.20.50.2' (ED25519) to the list of known hosts.
+fw-a-stop-rc=0
+2026-11-15T12:09:14+07:00
+=== FAILOVER OBSERVATION fw-b ===
+T1=2026-11-15T12:09:19+07:00
+Warning: Permanently added '172.20.50.3' (ED25519) to the list of known hosts.
+active
+active
+VIPS
+eth0             UP             172.20.10.3/24 172.20.10.1/24 fe80::20c:29ff:fed3:1a3f/64 
+eth1             UP             172.20.20.3/24 172.20.20.1/24 fe80::20c:29ff:fed3:1a49/64 
+eth2             UP             172.20.30.3/24 172.20.30.1/24 fe80::20c:29ff:fed3:1a53/64 
+eth3             UP             172.20.40.3/24 172.20.40.1/24 fe80::20c:29ff:fed3:1a5d/64 
+eth4             UP             172.20.50.3/24 172.20.50.1/24 fe80::20c:29ff:fed3:1a67/64 
+KEEPALIVED-STATE
+Nov 15 12:09:13 fw-b Keepalived_vrrp[714]: (VI_50) Entering MASTER STATE
+Nov 15 12:09:13 fw-b Keepalived_vrrp[714]: VRRP_Group(VG_FW) Syncing instances to MASTER state
+Nov 15 12:09:13 fw-b Keepalived_vrrp[714]: (VI_10) Entering MASTER STATE
+Nov 15 12:09:13 fw-b Keepalived_vrrp[714]: (VI_20) Entering MASTER STATE
+Nov 15 12:09:13 fw-b Keepalived_vrrp[714]: (VI_30) Entering MASTER STATE
+Nov 15 12:09:13 fw-b Keepalived_vrrp[714]: (VI_40) Entering MASTER STATE
+DENY-RULES
+		iifname "eth0" ip saddr { 172.20.10.2, 172.20.10.3 } ip protocol vrrp counter packets 134 bytes 5360 accept
+		iifname "eth1" ip saddr { 172.20.20.2, 172.20.20.3 } ip protocol vrrp counter packets 134 bytes 5360 accept
+		iifname "eth2" ip saddr { 172.20.30.2, 172.20.30.3 } ip protocol vrrp counter packets 133 bytes 5320 accept
+		iifname "eth3" ip saddr { 172.20.40.2, 172.20.40.3 } ip protocol vrrp counter packets 133 bytes 5320 accept
+		iifname "eth4" ip saddr { 172.20.50.2, 172.20.50.3 } ip protocol vrrp counter packets 133 bytes 5320 accept
+		limit rate 20/minute burst 40 packets log prefix "[FW-DENY-INPUT-DEFAULT] " flags all counter packets 51 bytes 2858 drop
+=== FAILOVER NEGATIVE PROBES via Transit-B ===
+ssh: connect to host 172.20.20.6 port 22: Connection timed out
+=== FAILBACK: start Keepalived on fw-a ===
+Warning: Permanently added '172.20.50.2' (ED25519) to the list of known hosts.
+active
+active
+=== FAILBACK OBSERVATION ===
+Warning: Permanently added '172.20.50.2' (ED25519) to the list of known hosts.
+fw-a
+eth0             UP             172.20.10.2/24 172.20.10.1/24 fe80::20c:29ff:fed2:6d77/64 
+eth1             UP             172.20.20.2/24 172.20.20.1/24 fe80::20c:29ff:fed2:6d81/64 
+eth2             UP             172.20.30.2/24 172.20.30.1/24 fe80::20c:29ff:fed2:6d8b/64 
+eth3             UP             172.20.40.2/24 172.20.40.1/24 fe80::20c:29ff:fed2:6d95/64 
+eth4             UP             172.20.50.2/24 172.20.50.1/24 fe80::20c:29ff:fed2:6d9f/64 
+Nov 15 12:09:43 fw-a systemd[1]: Starting keepalived.service - Keepalive Daemon (LVS and VRRP)...
+Nov 15 12:09:43 fw-a Keepalived[1081]: Starting Keepalived v2.2.7 (01/16,2022)
+Nov 15 12:09:43 fw-a Keepalived[1081]: Running on Linux 6.1.0-54-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.190-1 (2026-10-16) (built for Linux 5.19.11)
+Nov 15 12:09:43 fw-a Keepalived[1081]: Command line: '/usr/sbin/keepalived' '--dont-fork'
+Nov 15 12:09:43 fw-a Keepalived[1081]: Configuration file /etc/keepalived/keepalived.conf
+Nov 15 12:09:43 fw-a Keepalived[1081]: NOTICE: setting config option max_auto_priority should result in better keepalived performance
+Nov 15 12:09:43 fw-a Keepalived[1081]: Starting VRRP child process, pid=1082
+Nov 15 12:09:43 fw-a systemd[1]: keepalived.service: Got notification message from PID 1082, but reception only permitted for main PID 1081
+Nov 15 12:09:43 fw-a Keepalived[1081]: Startup complete
+Nov 15 12:09:43 fw-a systemd[1]: Started keepalived.service - Keepalive Daemon (LVS and VRRP).
+Nov 15 12:09:43 fw-a Keepalived_vrrp[1082]: VRRP_Script(chk_firewall) succeeded
+Nov 15 12:09:43 fw-a Keepalived_vrrp[1082]: (VI_50) Entering BACKUP STATE
+Nov 15 12:09:43 fw-a Keepalived_vrrp[1082]: VRRP_Group(VG_FW) Syncing instances to BACKUP state
+Nov 15 12:09:43 fw-a Keepalived_vrrp[1082]: (VI_10) Entering BACKUP STATE
+Nov 15 12:09:43 fw-a Keepalived_vrrp[1082]: (VI_20) Entering BACKUP STATE
+Nov 15 12:09:43 fw-a Keepalived_vrrp[1082]: (VI_30) Entering BACKUP STATE
+Nov 15 12:09:43 fw-a Keepalived_vrrp[1082]: (VI_40) Entering BACKUP STATE
+Nov 15 12:09:44 fw-a Keepalived_vrrp[1082]: (VI_10) received lower priority (100) advert from 172.20.10.3 - discarding
+Nov 15 12:09:44 fw-a Keepalived_vrrp[1082]: (VI_20) received lower priority (100) advert from 172.20.20.3 - discarding
+Nov 15 12:09:44 fw-a Keepalived_vrrp[1082]: (VI_30) received lower priority (100) advert from 172.20.30.3 - discarding
+Nov 15 12:09:44 fw-a Keepalived_vrrp[1082]: (VI_40) received lower priority (100) advert from 172.20.40.3 - discarding
+Nov 15 12:09:44 fw-a Keepalived_vrrp[1082]: (VI_50) received lower priority (100) advert from 172.20.50.3 - discarding
+Nov 15 12:09:45 fw-a Keepalived_vrrp[1082]: (VI_10) received lower priority (100) advert from 172.20.10.3 - discarding
+Nov 15 12:09:45 fw-a Keepalived_vrrp[1082]: (VI_20) received lower priority (100) advert from 172.20.20.3 - discarding
+Nov 15 12:09:45 fw-a Keepalived_vrrp[1082]: (VI_30) received lower priority (100) advert from 172.20.30.3 - discarding
+Nov 15 12:09:45 fw-a Keepalived_vrrp[1082]: (VI_40) received lower priority (100) advert from 172.20.40.3 - discarding
+Nov 15 12:09:45 fw-a Keepalived_vrrp[1082]: (VI_50) received lower priority (100) advert from 172.20.50.3 - discarding
+Nov 15 12:09:46 fw-a Keepalived_vrrp[1082]: (VI_10) received lower priority (100) advert from 172.20.10.3 - discarding
+Nov 15 12:09:46 fw-a Keepalived_vrrp[1082]: (VI_20) received lower priority (100) advert from 172.20.20.3 - discarding
+Nov 15 12:09:46 fw-a Keepalived_vrrp[1082]: (VI_30) received lower priority (100) advert from 172.20.30.3 - discarding
+Nov 15 12:09:46 fw-a Keepalived_vrrp[1082]: (VI_40) received lower priority (100) advert from 172.20.40.3 - discarding
+Nov 15 12:09:46 fw-a Keepalived_vrrp[1082]: (VI_50) received lower priority (100) advert from 172.20.50.3 - discarding
+Nov 15 12:09:47 fw-a Keepalived_vrrp[1082]: (VI_40) Entering MASTER STATE
+Nov 15 12:09:47 fw-a Keepalived_vrrp[1082]: VRRP_Group(VG_FW) Syncing instances to MASTER state
+Nov 15 12:09:47 fw-a Keepalived_vrrp[1082]: (VI_10) Entering MASTER STATE
+Nov 15 12:09:47 fw-a Keepalived_vrrp[1082]: (VI_20) Entering MASTER STATE
+Nov 15 12:09:47 fw-a Keepalived_vrrp[1082]: (VI_30) Entering MASTER STATE
+Nov 15 12:09:47 fw-a Keepalived_vrrp[1082]: (VI_50) Entering MASTER STATE
+Warning: Permanently added '172.20.50.3' (ED25519) to the list of known hosts.
+fw-b
+Nov 15 12:09:47 fw-b Keepalived_vrrp[714]: (VI_40) Master received advert from 172.20.40.2 with higher priority 150, ours 100
+Nov 15 12:09:47 fw-b Keepalived_vrrp[714]: (VI_40) Entering BACKUP STATE
+Nov 15 12:09:47 fw-b Keepalived_vrrp[714]: VRRP_Group(VG_FW) Syncing instances to BACKUP state
+Nov 15 12:09:47 fw-b Keepalived_vrrp[714]: (VI_10) Entering BACKUP STATE
+Nov 15 12:09:47 fw-b Keepalived_vrrp[714]: (VI_20) Entering BACKUP STATE
+Nov 15 12:09:47 fw-b Keepalived_vrrp[714]: (VI_30) Entering BACKUP STATE
+Nov 15 12:09:47 fw-b Keepalived_vrrp[714]: (VI_50) Entering BACKUP STATE
+=== POSTGRESQL AND CENTRAL SYSLOG ===
+ssh: connect to host 172.20.40.11 port 22: Connection timed out
+ssh: connect to host 172.20.20.6 port 22: Connection timed out
+Connection closed by UNKNOWN port 65535

@@ -1,0 +1,22 @@
+Warning: Permanently added '172.20.20.6' (ED25519) to the list of known hosts.
+Linux transit-b 6.1.0-54-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.190-1 (2026-10-16) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Thu Nov 12 22:17:30 2026 from 172.20.50.10
+date -Is
+timeout 3 bash -c '</dev/tcp/172.20.40.11/5432'; echo db_exit=$?
+timeout 3 bash -c '</dev/tcp/172.20.50.2/22';   echo ssh_exit=$?
+[?2004h]0;ops@transit-b: ~[01;32mops@transit-b[00m:[01;34m~[00m$ date -Is
+[?2004l2026-11-12T22:47:39+07:00
+[?2004h]0;ops@transit-b: ~[01;32mops@transit-b[00m:[01;34m~[00m$ timeout 3 bash -c '</dev/tcp/172.20.40.11/5432'; echo db_exit=$?
+[?2004ldb_exit=124
+[?2004h]0;ops@transit-b: ~[01;32mops@transit-b[00m:[01;34m~[00m$ timeout 3 bash -c '</dev/tcp/172.20.50.2/22';   echo ssh_exit=$?
+[?2004lssh_exit=124
+[?2004h]0;ops@transit-b: ~[01;32mops@transit-b[00m:[01;34m~[00m$ Connection to 172.20.20.6 closed by remote host.
+Connection to 172.20.20.6 closed.
+client_loop: send disconnect: Broken pipe

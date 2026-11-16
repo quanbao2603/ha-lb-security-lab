@@ -1,0 +1,27 @@
+Warning: Permanently added '172.20.50.10' (ED25519) to the list of known hosts.
+Linux log-monitor 6.1.0-54-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.190-1 (2026-10-16) x86_64set +e; date -Is; hostname; echo 'rsyslog='$(sudo -n systemctl is-active rsyslog); echo 'port514='; sudo -n netstat -tlnp | grep 514; echo 'central-hosts='; sudo -n find /var/log/central -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort; echo 'fw-a-tail='; sudo -n sh -c 'tail -n 2 /var/log/central/fw-a/kernel.log'
+
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Thu Nov 12 22:58:28 2026 from 172.20.50.254
+[?2004h]0;ops@log-monitor: ~[01;32mops@log-monitor[00m:[01;34m~[00m$ set +e; date -Is; hostname; echo 'rsyslog='$(sudo -n systemctl is-active rsyslog); echo 'port514='; sudo -n netstat -tlnp | grep 514; echo 'central-hosts='; sudo -n find /var/log/central -mindepth 1 -maxdepth 1 -type d -printf '%f\n' | sort; echo 'fw-a-tail='; sudo -n sh -c 'tail -n 2 /var/log/central/fw-a/kernel.log'
+[?2004l2026-11-12T23:01:44+07:00
+log-monitor
+rsyslog=active
+port514=
+tcp        0      0 172.20.50.10:514        0.0.0.0:*               LISTEN      485/rsyslogd        
+central-hosts=
+db-primary
+db-replica
+fw-a
+fw-b
+transit-b
+fw-a-tail=
+2026-11-12T23:01:40+07:00 fw-a kernel: [ 6185.834118] [FW-ALLOW-SYSLOG] IN=eth3 OUT=eth4 MAC=00:0c:29:d2:6d:95:00:0c:29:48:0b:66:08:00 SRC=172.20.40.11 DST=172.20.50.10 LEN=212 TOS=0x00 PREC=0x00 TTL=63 ID=63295 DF PROTO=UDP SPT=33546 DPT=514 LEN=192 
+2026-11-12T23:01:40+07:00 fw-a kernel: [ 6185.835479] [FW-ALLOW-SYSLOG] IN=eth3 OUT=eth4 MAC=00:0c:29:d2:6d:95:00:0c:29:48:0b:66:08:00 SRC=172.20.40.11 DST=172.20.50.10 LEN=173 TOS=0x00 PREC=0x00 TTL=63 ID=63296 DF PROTO=UDP SPT=33546 DPT=514 LEN=153 
+[?2004h]0;ops@log-monitor: ~[01;32mops@log-monitor[00m:[01;34m~[00m$ 

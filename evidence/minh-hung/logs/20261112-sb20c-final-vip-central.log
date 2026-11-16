@@ -1,0 +1,23 @@
+Warning: Permanently added '172.20.50.10' (ED25519) to the list of known hosts.
+set +e; date -Is; hostname; echo '--- FW-A VIP via MGMT SSH ---'; ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes ops@172.20.50.2 'ip -br addr | grep 172.20.20.1'; echo '--- central recent ---'; sudo -n sh -c 'tail -n 4 /var/log/central/fw-a/kernel.log'
+Linux log-monitor 6.1.0-54-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.190-1 (2026-10-16) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Thu Nov 12 22:55:06 2026 from 172.20.50.254
+[?2004h]0;ops@log-monitor: ~[01;32mops@log-monitor[00m:[01;34m~[00m$ set +e; date -Is; hostname; echo '--- FW-A VIP via MGMT SSH ---'; ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes ops@172.20.50.2 'ip -br addr | grep 172.20.20.1'; echo '--- central recent ---'; sudo -n sh -c 'tail -n 4 /var/log/central/fw-a/kernel.log'
+[?2004l2026-11-12T22:58:28+07:00
+log-monitor
+--- FW-A VIP via MGMT SSH ---
+Warning: Permanently added '172.20.50.2' (ED25519) to the list of known hosts.
+ops@172.20.50.2: Permission denied (publickey).
+--- central recent ---
+2026-11-12T22:58:29+07:00 fw-a kernel: [ 5994.217607] [FW-ALLOW-SYSLOG] IN=eth1 OUT=eth4 MAC=00:0c:29:d2:6d:81:00:0c:29:6c:3e:59:08:00 SRC=172.20.20.6 DST=172.20.50.10 LEN=324 TOS=0x00 PREC=0x00 TTL=63 ID=16096 DF PROTO=UDP SPT=39737 DPT=514 LEN=304 
+2026-11-12T22:58:29+07:00 fw-a kernel: [ 5994.217758] [FW-ALLOW-SYSLOG] IN=eth1 OUT=eth4 MAC=00:0c:29:d2:6d:81:00:0c:29:6c:3e:59:08:00 SRC=172.20.20.6 DST=172.20.50.10 LEN=272 TOS=0x00 PREC=0x00 TTL=63 ID=16097 DF PROTO=UDP SPT=39737 DPT=514 LEN=252 
+2026-11-12T22:58:29+07:00 fw-a kernel: [ 5994.217785] [FW-ALLOW-SYSLOG] IN=eth1 OUT=eth4 MAC=00:0c:29:d2:6d:81:00:0c:29:6c:3e:59:08:00 SRC=172.20.20.6 DST=172.20.50.10 LEN=324 TOS=0x00 PREC=0x00 TTL=63 ID=16098 DF PROTO=UDP SPT=39737 DPT=514 LEN=304 
+2026-11-12T22:58:29+07:00 fw-a kernel: [ 5994.217802] [FW-ALLOW-SYSLOG] IN=eth1 OUT=eth4 MAC=00:0c:29:d2:6d:81:00:0c:29:6c:3e:59:08:00 SRC=172.20.20.6 DST=172.20.50.10 LEN=272 TOS=0x00 PREC=0x00 TTL=63 ID=16099 DF PROTO=UDP SPT=39737 DPT=514 LEN=252 
+[?2004h]0;ops@log-monitor: ~[01;32mops@log-monitor[00m:[01;34m~[00m$ 

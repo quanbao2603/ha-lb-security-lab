@@ -1,0 +1,23 @@
+Warning: Permanently added '172.20.50.3' (ED25519) to the list of known hosts.
+Linux fw-b 6.1.0-54-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.190-1 (2026-10-16) x86_64date -Is
+hostname
+ip -br addr | grep 172.20
+
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+[?2004h]0;ops@fw-b: ~[01;32mops@fw-b[00m:[01;34m~[00m$ date -Is
+[?2004l2026-11-12T22:08:08+07:00
+[?2004h]0;ops@fw-b: ~[01;32mops@fw-b[00m:[01;34m~[00m$ hostname
+[?2004lfw-b
+[?2004h]0;ops@fw-b: ~[01;32mops@fw-b[00m:[01;34m~[00m$ ip -br addr | grep 172.20
+[?2004leth0             UP             172.20.10.3/24 fe80::20c:29ff:fed3:1a3f/64 
+eth1             UP             172.20.20.3/24 fe80::20c:29ff:fed3:1a49/64 
+eth2             UP             172.20.30.3/24 fe80::20c:29ff:fed3:1a53/64 
+eth3             UP             172.20.40.3/24 fe80::20c:29ff:fed3:1a5d/64 
+eth4             UP             172.20.50.3/24 fe80::20c:29ff:fed3:1a67/64 
+[?2004h]0;ops@fw-b: ~[01;32mops@fw-b[00m:[01;34m~[00m$ 
