@@ -1,0 +1,54 @@
+### EV17-SB-04 | fw-a-ruleset | 2026-11-17T00:59:04+07:00 | target=172.20.50.2
+Warning: Permanently added '172.20.50.2' (ED25519) to the list of known hosts.
++ echo '=== Firewall-A nftables policy (deny-by-default) ==='
+=== Firewall-A nftables policy (deny-by-default) ===
++ date -Is
+2026-11-17T00:59:06+07:00
++ hostname
+fw-a
+++ systemctl is-active nftables
+++ systemctl is-active keepalived
+nftables=active  keepalived=active
++ echo 'nftables=active  keepalived=active'
+++ cat /proc/sys/net/ipv4/ip_forward
+ip_forward=1
+--- chain policies ---
++ echo ip_forward=1
++ echo '--- chain policies ---'
++ grep -E '^\s*type filter hook (input|forward)'
++ sudo -n nft list ruleset
+		type filter hook input priority filter; policy drop;
+		type filter hook forward priority filter; policy drop;
+--- structured log prefixes (count) ---
++ echo '--- structured log prefixes (count) ---'
++ sort -rn
++ uniq -c
++ grep -oE '\[FW-[A-Z-]+:?\]'
++ sort
++ sudo -n nft list ruleset
+      6 [FW-DENY-SPOOF]
+      2 [FW-DENY-INVALID]
+      2 [FW-ALLOW-MGMT-SSH:]
+      2 [FW-ALLOW-DB-REPL:]
+      1 [FW-NAT-DNAT-VIP]
+      1 [FW-DENY-WAN-SSH]
+      1 [FW-DENY-INPUT-DEFAULT]
+      1 [FW-DEFAULT-DENY:]
+      1 [FW-ALLOW-WEB-DB:]
+      1 [FW-ALLOW-WAN-VIP:]
+      1 [FW-ALLOW-SYSLOG]
+      1 [FW-ALLOW-MGMT-ICMP]
+      1 [FW-ALLOW-LB-WEB:]
+      1 [FW-ALLOW-ICMP-IN]
+--- allowed data paths ---
++ echo '--- allowed data paths ---'
++ cut -c1-120
++ sed 's/^\s*//'
++ grep -E 'ALLOW-(WEB-DB|DB-REPL|SYSLOG|MGMT-SSH)'
++ sudo -n nft list chain inet filter forward
+ip saddr { 172.20.20.21, 172.20.20.22 } ip daddr { 172.20.40.11, 172.20.40.12 } tcp dport 5432 ct state new log prefix "
+ip saddr 172.20.40.11 ip daddr 172.20.40.12 tcp dport 5432 ct state new log prefix "[FW-ALLOW-DB-REPL:] " counter packet
+ip saddr 172.20.40.12 ip daddr 172.20.40.11 tcp dport 5432 ct state new log prefix "[FW-ALLOW-DB-REPL:] " counter packet
+ip saddr 172.20.50.0/24 ip daddr { 172.20.10.0/24, 172.20.20.0/24, 172.20.30.0/24, 172.20.40.0/24, 172.20.50.0/24 } tcp 
+ip saddr { 172.20.20.0/24, 172.20.40.0/24, 172.20.50.0/24 } ip daddr 172.20.50.10 meta l4proto { tcp, udp } th dport 514
+END=2026-11-17T00:59:05+07:00

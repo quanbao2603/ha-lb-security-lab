@@ -1,0 +1,16 @@
+### EV17-SB-28 | baseline-restored-standby | 2026-11-17T02:29:53+07:00 | target=jump:172.20.40.11
+Warning: Permanently added '172.20.40.11' (ED25519) to the list of known hosts.
++ echo '=== .11 STANDBY confirms streaming receiver ==='
+=== .11 STANDBY confirms streaming receiver ===
+2026-11-17T02:29:55+07:00
+db-primary
+pg_is_in_recovery = t
+--- wal receiver ---
++ date -Is
++ hostname
++ echo -n 'pg_is_in_recovery = '
++ sudo -n -u postgres psql -tAc 'select pg_is_in_recovery()'
++ echo '--- wal receiver ---'
++ sudo -n -u postgres psql -tAc 'select status || '\'' from '\'' || sender_host from pg_stat_wal_receiver'
+streaming from 172.20.40.12
+END=2026-11-17T02:29:54+07:00

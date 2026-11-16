@@ -1,0 +1,16 @@
+### EV17-SB-12 | replica-received-row | 2026-11-17T01:39:35+07:00 | target=jump:172.20.40.11
+Warning: Permanently added '172.20.40.11' (ED25519) to the list of known hosts.
+=== Replica receives the row written in SB-11 ===
++ echo '=== Replica receives the row written in SB-11 ==='
++ date -Is
+2026-11-17T01:39:37+07:00
+db-primary
+pg_is_in_recovery = t
+--- row SB-LEAST-PRIV replicated here? ---
++ hostname
++ echo -n 'pg_is_in_recovery = '
++ sudo -n -u postgres psql -tAc 'select pg_is_in_recovery()'
++ echo '--- row SB-LEAST-PRIV replicated here? ---'
++ sudo -n -u postgres psql -d ha_lab_db -tAc 'select id||'\'' | '\''||node_name||'\'' | '\''||status from health_checks where node_name='\''SB-LEAST-PRIV'\'' order by id desc limit 1'
+115 | SB-LEAST-PRIV | OK
+END=2026-11-17T01:39:36+07:00

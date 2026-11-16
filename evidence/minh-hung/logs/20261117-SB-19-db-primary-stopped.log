@@ -1,0 +1,22 @@
+### EV17-SB-19 | db-primary-stopped | 2026-11-17T01:54:17+07:00 | target=jump:172.20.40.12
+Warning: Permanently added '172.20.40.12' (ED25519) to the list of known hosts.
+=== DB FAILOVER STEP 1: stop PostgreSQL on current PRIMARY (.12) ===
+2026-11-17T01:54:19+07:00
++ echo '=== DB FAILOVER STEP 1: stop PostgreSQL on current PRIMARY (.12) ==='
++ date -Is
++ hostname
+db-replica
+before: postgresql=active
+before pg_is_in_recovery = f
+--- stopping .12 ---
+++ systemctl is-active postgresql
++ echo 'before: postgresql=active'
++ echo -n 'before pg_is_in_recovery = '
++ sudo -n -u postgres psql -tAc 'select pg_is_in_recovery()'
++ echo '--- stopping .12 ---'
++ sudo -n systemctl stop postgresql
++ sleep 2
+++ systemctl is-active postgresql
+after: postgresql=inactive
++ echo 'after: postgresql=inactive'
+END=2026-11-17T01:54:20+07:00

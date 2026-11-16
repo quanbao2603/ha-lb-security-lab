@@ -1,0 +1,20 @@
+### EV17-SB-13 | vrrp-baseline | 2026-11-17T01:41:22+07:00 | target=172.20.50.2
+Warning: Permanently added '172.20.50.2' (ED25519) to the list of known hosts.
+=== BASELINE before VRRP failover ===
++ echo '=== BASELINE before VRRP failover ==='
++ date -Is
+2026-11-17T01:41:24+07:00
++ hostname
+fw-a
+++ systemctl is-active keepalived
+++ systemctl is-active nftables
+keepalived=active nftables=active
++ echo 'keepalived=active nftables=active'
+++ grep -c secondary
+++ ip -4 addr show
+VIP_COUNT=5
++ echo VIP_COUNT=5
++ ssh -T -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes ops@172.20.50.3 'echo "fw-b keepalived=$(systemctl is-active keepalived) VIP_COUNT=$(ip -4 addr show | grep -c secondary)"'
+Warning: Permanently added '172.20.50.3' (ED25519) to the list of known hosts.
+ops@172.20.50.3: Permission denied (publickey).
+END=2026-11-17T01:41:23+07:00

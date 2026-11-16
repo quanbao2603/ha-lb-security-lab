@@ -1,0 +1,20 @@
+### EV17-SB-22b | final-standby | 2026-11-17T02:11:22+07:00 | target=jump:172.20.40.12
+Warning: Permanently added '172.20.40.12' (ED25519) to the list of known hosts.
+=== FINAL STATE B: .12 STANDBY, data caught up ===
++ echo '=== FINAL STATE B: .12 STANDBY, data caught up ==='
++ date -Is
+2026-11-17T02:11:24+07:00
+db-replica
+pg_is_in_recovery = + hostname
++ echo -n 'pg_is_in_recovery = '
++ sudo -n -u postgres psql -tAc 'select pg_is_in_recovery()'
+t
+--- wal receiver ---
+streaming from 172.20.40.11
+--- row written DURING failover, now replicated here ---
++ echo '--- wal receiver ---'
++ sudo -n -u postgres psql -tAc 'select status||'\'' from '\''||sender_host from pg_stat_wal_receiver'
++ echo '--- row written DURING failover, now replicated here ---'
++ sudo -n -u postgres psql -d ha_lab_db -tAc 'select id||'\'' | '\''||node_name from health_checks where node_name='\''SB-DB-FAILOVER'\'' order by id desc limit 1'
+148 | SB-DB-FAILOVER
+END=2026-11-17T02:11:23+07:00

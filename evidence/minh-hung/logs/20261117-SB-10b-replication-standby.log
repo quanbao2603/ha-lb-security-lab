@@ -1,0 +1,21 @@
+### EV17-SB-10b | replication-standby | 2026-11-17T01:22:20+07:00 | target=jump:172.20.40.11
+Warning: Permanently added '172.20.40.11' (ED25519) to the list of known hosts.
+=== PostgreSQL: current STANDBY (.11) ===
++ echo '=== PostgreSQL: current STANDBY (.11) ==='
++ date -Is
+2026-11-17T01:22:22+07:00
+db-primary
+pg_is_in_recovery = + hostname
++ echo -n 'pg_is_in_recovery = '
++ sudo -n -u postgres psql -tAc 'select pg_is_in_recovery()'
+t
+--- wal receiver ---
+-[ RECORD 1 ]--+-------------
+status         | streaming
+sender_host    | 172.20.40.12
+sender_port    | 5432
+latest_end_lsn | 0/E0015A8
+
++ echo '--- wal receiver ---'
++ sudo -n -u postgres psql -x -c 'select status, sender_host, sender_port, latest_end_lsn from pg_stat_wal_receiver'
+END=2026-11-17T01:22:20+07:00

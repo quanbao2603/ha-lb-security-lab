@@ -1,0 +1,33 @@
+### EV17-SB-06 | keepalived-gap-resolved | 2026-11-17T01:04:37+07:00 | target=172.20.50.2
+Warning: Permanently added '172.20.50.2' (ED25519) to the list of known hosts.
+=== GAP-01 resolution: Keepalived installed & active (was the gap) ===
++ echo '=== GAP-01 resolution: Keepalived installed & active (was the gap) ==='
++ date -Is
+2026-11-17T01:04:38+07:00
++ hostname
+fw-a
+++ systemctl is-active keepalived
+keepalived_state=active
++ echo keepalived_state=active
+++ systemctl is-enabled keepalived
+keepalived_enabled=enabled
+--- version ---
++ echo keepalived_enabled=enabled
++ echo '--- version ---'
++ head -1
++ sudo -n keepalived --version
+Keepalived v2.2.7 (01/16,2022)
+--- config validation ---
++ echo '--- config validation ---'
++ sudo -n keepalived -t -f /etc/keepalived/keepalived.conf
+keepalived_cfg_exit=0
++ echo keepalived_cfg_exit=0
++ sudo -n nft -c -f /etc/nftables.conf
+nft_cfg_exit=0
+--- health check script ---
++ echo nft_cfg_exit=0
++ echo '--- health check script ---'
++ sudo -n /usr/local/sbin/keepalived-healthcheck.sh
+healthcheck_exit=0
++ echo healthcheck_exit=0
+END=2026-11-17T01:04:37+07:00

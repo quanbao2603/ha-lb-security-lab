@@ -1,0 +1,38 @@
+### EV17-SB-03 | anti-bypass-probes | 2026-11-17T00:57:04+07:00 | target=jump:172.20.20.6
+Warning: Permanently added '172.20.20.6' (ED25519) to the list of known hosts.
+=== Anti-bypass probes FROM Transit-B (DMZ) ===
++ echo '=== Anti-bypass probes FROM Transit-B (DMZ) ==='
+2026-11-17T00:57:05+07:00
+transit-b
+--- probe 1: PostgreSQL 5432 from Transit ---
++ date -Is
++ hostname
++ echo '--- probe 1: PostgreSQL 5432 from Transit ---'
++ timeout 4 bash -c '</dev/tcp/172.20.40.12/5432'
+db_exit=124 (124/1 = blocked)
+--- probe 2: Firewall-A SSH 22 from Transit ---
++ echo 'db_exit=124 (124/1 = blocked)'
++ echo '--- probe 2: Firewall-A SSH 22 from Transit ---'
++ timeout 4 bash -c '</dev/tcp/172.20.50.2/22'
+ssh_exit=124 (124/1 = blocked)
+--- probe 3: fake management host .50.20:514 (bypass attempt) ---
++ echo 'ssh_exit=124 (124/1 = blocked)'
++ echo '--- probe 3: fake management host .50.20:514 (bypass attempt) ---'
++ timeout 4 bash -c '</dev/tcp/172.20.50.20/514'
+bypass_exit=124 (124/1 = blocked)
+--- control: ICMP to DB must still work (routing OK) ---
++ echo 'bypass_exit=124 (124/1 = blocked)'
++ echo '--- control: ICMP to DB must still work (routing OK) ---'
++ tail -2
++ ping -c 2 -W 2 172.20.40.12
+2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+rtt min/avg/max/mdev = 0.969/1.123/1.277/0.154 ms
+--- transit own filter counters ---
+		iifname "tailscale0" oifname != "eth0" log prefix "[TRANSIT-B-BYPASS-DROP] " counter packets 0 bytes 0 drop
+		ip saddr 172.20.10.0/24 ip daddr { 172.20.40.0/24, 172.20.50.0/24 } log prefix "[TRANSIT-B-WAN-BYPASS-DROP] " counter packets 0 bytes 0 drop
+		log prefix "[TRANSIT-B-FWD-DROP] " counter packets 51 bytes 7752 drop
++ echo '--- transit own filter counters ---'
++ head -4
++ grep -E 'BYPASS|DROP'
++ sudo -n nft list chain inet transit_filter forward
+END=2026-11-17T00:57:18+07:00

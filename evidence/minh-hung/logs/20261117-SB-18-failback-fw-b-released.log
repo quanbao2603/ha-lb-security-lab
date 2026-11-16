@@ -1,0 +1,25 @@
+### EV17-SB-18 | failback-fw-b-released | 2026-11-17T02:49:16+07:00 | target=172.20.50.3
+Warning: Permanently added '172.20.50.3' (ED25519) to the list of known hosts.
+=== FAILBACK PROOF: Firewall-B released all VIPs ===
++ echo '=== FAILBACK PROOF: Firewall-B released all VIPs ==='
++ date -Is
+2026-11-17T02:49:17+07:00
++ hostname
+fw-b
+++ systemctl is-active keepalived
+++ systemctl is-active nftables
+keepalived=active  nftables=active
++ echo 'keepalived=active  nftables=active'
+++ grep -c secondary
+++ ip -4 addr show
+VIP_COUNT=0  (expect 0)
+--- b config still valid ---
++ echo 'VIP_COUNT=0  (expect 0)'
++ echo '--- b config still valid ---'
++ sudo -n keepalived -t -f /etc/keepalived/keepalived.conf
+b_keepalived_cfg_exit=0
++ echo b_keepalived_cfg_exit=0
++ sudo -n nft -c -f /etc/nftables.conf
+b_nft_cfg_exit=0
++ echo b_nft_cfg_exit=0
+END=2026-11-17T02:49:17+07:00

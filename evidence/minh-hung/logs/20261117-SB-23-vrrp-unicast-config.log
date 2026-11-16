@@ -1,0 +1,40 @@
+### EV17-SB-23 | vrrp-unicast-config | 2026-11-17T02:16:00+07:00 | target=172.20.50.2
+Warning: Permanently added '172.20.50.2' (ED25519) to the list of known hosts.
++ echo '=== VRRP unicast configuration (Firewall-A MASTER) ==='
+=== VRRP unicast configuration (Firewall-A MASTER) ===
++ date -Is
+2026-11-17T02:16:02+07:00
++ hostname
+fw-a
+--- sync group binds all 5 VRIDs ---
++ echo '--- sync group binds all 5 VRIDs ---'
++ sudo -n sed -n '/vrrp_sync_group VG_FW/,/^}/p' /etc/keepalived/keepalived.conf
+vrrp_sync_group VG_FW {
+    group {
+        VI_10
+        VI_20
+        VI_30
+        VI_40
+        VI_50
+    }
+}
+--- instance roles and priorities ---
++ echo '--- instance roles and priorities ---'
++ head -14
++ sed 's/^\s*//'
++ sudo -n grep -E 'vrrp_instance|state |priority |unicast_src_ip|virtual_router_id' /etc/keepalived/keepalived.conf
+vrrp_instance VI_10 {
+state MASTER
+virtual_router_id 10
+priority 150
+unicast_src_ip 172.20.10.2
+vrrp_instance VI_20 {
+state MASTER
+virtual_router_id 20
+priority 150
+unicast_src_ip 172.20.20.2
+vrrp_instance VI_30 {
+state MASTER
+virtual_router_id 30
+priority 150
+END=2026-11-17T02:16:01+07:00

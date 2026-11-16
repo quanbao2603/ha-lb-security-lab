@@ -1,0 +1,21 @@
+### EV17-SB-02a | services-fw-a | 2026-11-17T00:51:24+07:00 | target=172.20.50.2
+Warning: Permanently added '172.20.50.2' (ED25519) to the list of known hosts.
++ echo '=== NODE: fw-a (Firewall-A) ==='
+=== NODE: fw-a (Firewall-A) ===
++ date -Is
+2026-11-17T00:51:25+07:00
++ hostname
+fw-a
+++ systemctl is-active nftables
+nftables:  active
++ echo 'nftables:  active'
+++ systemctl is-active keepalived
+keepalived:active
++ echo keepalived:active
+++ systemctl is-active rsyslog
+rsyslog:   active
++ echo 'rsyslog:   active'
+++ systemctl is-active postgresql
+postgresql:inactive
++ echo postgresql:inactive
+END=2026-11-17T00:51:24+07:00
