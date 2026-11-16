@@ -1,0 +1,372 @@
+=============== fw-a 172.20.50.2
+### host: fw-a node=fw-a date=2026-11-13T01:26:51+07:00
+$ backup /var/backups/firewall/vrrp-20261113-012651
+rc=0
+nft list rc=0
+total 12
+-rw-r----- 1 root root  508 Nov 13 01:26 ip-br-addr.txt
+-rw-r--r-- 1 root root 4416 Nov 13 01:26 nftables.conf
+$ systemctl is-active nftables
+active
+$ ip -br addr
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+eth0             UP             172.20.10.2/24 172.20.10.1/24 fe80::20c:29ff:fed2:6d77/64 
+eth1             UP             172.20.20.2/24 172.20.20.1/24 fe80::20c:29ff:fed2:6d81/64 
+eth2             UP             172.20.30.2/24 172.20.30.1/24 fe80::20c:29ff:fed2:6d8b/64 
+eth3             UP             172.20.40.2/24 172.20.40.1/24 fe80::20c:29ff:fed2:6d95/64 
+eth4             UP             172.20.50.2/24 172.20.50.1/24 fe80::20c:29ff:fed2:6d9f/64 
+$ apt-get update
+Ign:6 https://deb.debian.org/debian-security bookworm-security InRelease
+Err:3 https://deb.debian.org/debian bookworm InRelease
+  Temporary failure resolving 'deb.debian.org'
+Err:4 https://deb.debian.org/debian bookworm-updates InRelease
+  Temporary failure resolving 'deb.debian.org'
+Err:5 https://deb.debian.org/debian bookworm-backports InRelease
+  Temporary failure resolving 'deb.debian.org'
+Err:6 https://deb.debian.org/debian-security bookworm-security InRelease
+  Temporary failure resolving 'deb.debian.org'
+Reading package lists...
+W: Failed to fetch mirror+file:/etc/apt/mirrors/debian.list/dists/bookworm/InRelease  Temporary failure resolving 'deb.debian.org'
+W: Failed to fetch mirror+file:/etc/apt/mirrors/debian.list/dists/bookworm-updates/InRelease  Temporary failure resolving 'deb.debian.org'
+W: Failed to fetch mirror+file:/etc/apt/mirrors/debian.list/dists/bookworm-backports/InRelease  Temporary failure resolving 'deb.debian.org'
+W: Failed to fetch mirror+file:/etc/apt/mirrors/debian-security.list/dists/bookworm-security/InRelease  Temporary failure resolving 'deb.debian.org'
+W: Some index files failed to download. They have been ignored, or old ones used instead.
+rc=0
+$ apt-get install keepalived
+Reading package lists...
+Building dependency tree...
+Reading state information...
+E: Unable to locate package keepalived
+rc=100
+$ keepalived -t
+sudo: keepalived: command not found
+rc=1
+$ nft -c -f /etc/nftables.conf
+rc=0
+Failed to enable unit: Unit file keepalived.service does not exist.
+enable rc=1
+is-enabled: Failed to get unit file state for keepalived.service: No such file or directory
+is-active: inactive
+-rw-r--r-- 1 root root 2319 Nov 13 01:26 /etc/keepalived/keepalived.conf
+-rwxr-xr-x 1 root root  174 Nov 13 01:26 /usr/local/sbin/keepalived-healthcheck.sh
+$ ip -br addr (after)
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+eth0             UP             172.20.10.2/24 172.20.10.1/24 fe80::20c:29ff:fed2:6d77/64 
+eth1             UP             172.20.20.2/24 172.20.20.1/24 fe80::20c:29ff:fed2:6d81/64 
+eth2             UP             172.20.30.2/24 172.20.30.1/24 fe80::20c:29ff:fed2:6d8b/64 
+eth3             UP             172.20.40.2/24 172.20.40.1/24 fe80::20c:29ff:fed2:6d95/64 
+eth4             UP             172.20.50.2/24 172.20.50.1/24 fe80::20c:29ff:fed2:6d9f/64 
+=============== fw-b 172.20.50.3
+### host: fw-b node=fw-b date=2026-11-13T01:27:00+07:00
+$ backup /var/backups/firewall/vrrp-20261113-012700
+rc=0
+nft list rc=0
+total 12
+-rw-r----- 1 root root  433 Nov 13 01:27 ip-br-addr.txt
+-rw-r--r-- 1 root root 4400 Nov 13 01:27 nftables.conf
+$ systemctl is-active nftables
+active
+$ ip -br addr
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+eth0             UP             172.20.10.3/24 fe80::20c:29ff:fed3:1a3f/64 
+eth1             UP             172.20.20.3/24 fe80::20c:29ff:fed3:1a49/64 
+eth2             UP             172.20.30.3/24 fe80::20c:29ff:fed3:1a53/64 
+eth3             UP             172.20.40.3/24 fe80::20c:29ff:fed3:1a5d/64 
+eth4             UP             172.20.50.3/24 fe80::20c:29ff:fed3:1a67/64 
+$ apt-get update
+Ign:6 https://deb.debian.org/debian-security bookworm-security InRelease
+Err:2 https://deb.debian.org/debian bookworm InRelease
+  Temporary failure resolving 'deb.debian.org'
+Err:3 https://deb.debian.org/debian bookworm-updates InRelease
+  Temporary failure resolving 'deb.debian.org'
+Err:4 https://deb.debian.org/debian bookworm-backports InRelease
+  Temporary failure resolving 'deb.debian.org'
+Err:6 https://deb.debian.org/debian-security bookworm-security InRelease
+  Temporary failure resolving 'deb.debian.org'
+Reading package lists...
+W: Failed to fetch mirror+file:/etc/apt/mirrors/debian.list/dists/bookworm/InRelease  Temporary failure resolving 'deb.debian.org'
+W: Failed to fetch mirror+file:/etc/apt/mirrors/debian.list/dists/bookworm-updates/InRelease  Temporary failure resolving 'deb.debian.org'
+W: Failed to fetch mirror+file:/etc/apt/mirrors/debian.list/dists/bookworm-backports/InRelease  Temporary failure resolving 'deb.debian.org'
+W: Failed to fetch mirror+file:/etc/apt/mirrors/debian-security.list/dists/bookworm-security/InRelease  Temporary failure resolving 'deb.debian.org'
+W: Some index files failed to download. They have been ignored, or old ones used instead.
+rc=0
+$ apt-get install keepalived
+Reading package lists...
+Building dependency tree...
+Reading state information...
+E: Unable to locate package keepalived
+rc=100
+$ keepalived -t
+sudo: keepalived: command not found
+rc=1
+$ nft -c -f /etc/nftables.conf
+rc=0
+Failed to enable unit: Unit file keepalived.service does not exist.
+enable rc=1
+is-enabled: Failed to get unit file state for keepalived.service: No such file or directory
+is-active: inactive
+-rw-r--r-- 1 root root 2319 Nov 13 01:27 /etc/keepalived/keepalived.conf
+-rwxr-xr-x 1 root root  174 Nov 13 01:27 /usr/local/sbin/keepalived-healthcheck.sh
+$ ip -br addr (after)
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+eth0             UP             172.20.10.3/24 fe80::20c:29ff:fed3:1a3f/64 
+eth1             UP             172.20.20.3/24 fe80::20c:29ff:fed3:1a49/64 
+eth2             UP             172.20.30.3/24 fe80::20c:29ff:fed3:1a53/64 
+eth3             UP             172.20.40.3/24 fe80::20c:29ff:fed3:1a5d/64 
+eth4             UP             172.20.50.3/24 fe80::20c:29ff:fed3:1a67/64 
+=============== diag 172.20.50.2
+fw-a
+$ ip route
+172.20.10.0/24 dev eth0 proto kernel scope link src 172.20.10.2 
+172.20.20.0/24 dev eth1 proto kernel scope link src 172.20.20.2 
+172.20.30.0/24 dev eth2 proto kernel scope link src 172.20.30.2 
+172.20.40.0/24 dev eth3 proto kernel scope link src 172.20.40.2 
+172.20.50.0/24 dev eth4 proto kernel scope link src 172.20.50.2 
+$ resolv.conf
+# This is /run/systemd/resolve/resolv.conf managed by man:systemd-resolved(8).
+# Do not edit.
+#
+# This file might be symlinked as /etc/resolv.conf. If you're looking at
+# /etc/resolv.conf and seeing this text, you have followed the symlink.
+#
+# This is a dynamic resolv.conf file for connecting local clients directly to
+# all known uplink DNS servers. This file lists all configured search domains.
+#
+# Third party programs should typically not access this file directly, but only
+# through the symlink at /etc/resolv.conf. To manage man:resolv.conf(5) in a
+# different way, replace this symlink by a static file or a different symlink.
+#
+# See man:systemd-resolved.service(8) for details about the supported modes of
+# operation for /etc/resolv.conf.
+
+# No DNS servers known.
+search .
+$ ping 1.1.1.1
+ping: connect: Network is unreachable
+$ ping 172.20.10.254?
+3:		type filter hook prerouting priority raw; policy accept;
+13:		type filter hook input priority filter; policy drop;
+25:		type filter hook forward priority filter; policy drop;
+44:	chain output {
+45:		type filter hook output priority filter; policy accept;
+50:		type nat hook prerouting priority dstnat; policy accept;
+55:		type nat hook postrouting priority srcnat; policy accept;
+=============== diag 172.20.50.3
+fw-b
+$ ip route
+172.20.10.0/24 dev eth0 proto kernel scope link src 172.20.10.3 
+172.20.20.0/24 dev eth1 proto kernel scope link src 172.20.20.3 
+172.20.30.0/24 dev eth2 proto kernel scope link src 172.20.30.3 
+172.20.40.0/24 dev eth3 proto kernel scope link src 172.20.40.3 
+172.20.50.0/24 dev eth4 proto kernel scope link src 172.20.50.3 
+$ resolv.conf
+# This is /run/systemd/resolve/resolv.conf managed by man:systemd-resolved(8).
+# Do not edit.
+#
+# This file might be symlinked as /etc/resolv.conf. If you're looking at
+# /etc/resolv.conf and seeing this text, you have followed the symlink.
+#
+# This is a dynamic resolv.conf file for connecting local clients directly to
+# all known uplink DNS servers. This file lists all configured search domains.
+#
+# Third party programs should typically not access this file directly, but only
+# through the symlink at /etc/resolv.conf. To manage man:resolv.conf(5) in a
+# different way, replace this symlink by a static file or a different symlink.
+#
+# See man:systemd-resolved.service(8) for details about the supported modes of
+# operation for /etc/resolv.conf.
+
+# No DNS servers known.
+search .
+$ ping 1.1.1.1
+ping: connect: Network is unreachable
+$ ping 172.20.10.254?
+3:		type filter hook prerouting priority raw; policy accept;
+13:		type filter hook input priority filter; policy drop;
+25:		type filter hook forward priority filter; policy drop;
+44:	chain output {
+45:		type filter hook output priority filter; policy accept;
+50:		type nat hook prerouting priority dstnat; policy accept;
+55:		type nat hook postrouting priority srcnat; policy accept;
+=============== fw-a 172.20.50.2 (offline install)
+### host fw-a offline install from hash-verified debs
+Selecting previously unselected package libsnmp-base.
+Preparing to unpack .../libsnmp-base_5.9.3+dfsg-2+deb12u1_all.deb ...
+Unpacking libsnmp-base (5.9.3+dfsg-2+deb12u1) ...
+Selecting previously unselected package libsnmp40:amd64.
+Preparing to unpack .../libsnmp40_5.9.3+dfsg-2+deb12u1_amd64.deb ...
+Unpacking libsnmp40:amd64 (5.9.3+dfsg-2+deb12u1) ...
+Selecting previously unselected package perl-modules-5.36.
+Preparing to unpack .../perl-modules-5.36_5.36.0-7+deb12u3_all.deb ...
+Unpacking perl-modules-5.36 (5.36.0-7+deb12u3) ...
+Setting up libgdbm-compat4:amd64 (1.23-3) ...
+Setting up libnl-3-200:amd64 (3.7.0-0.2+b1) ...
+Setting up libnl-genl-3-200:amd64 (3.7.0-0.2+b1) ...
+Setting up libsensors-config (1:3.6.0-7.1) ...
+Setting up libsensors5:amd64 (1:3.6.0-7.1) ...
+Setting up libsnmp-base (5.9.3+dfsg-2+deb12u1) ...
+Setting up perl-modules-5.36 (5.36.0-7+deb12u3) ...
+Setting up libperl5.36:amd64 (5.36.0-7+deb12u3) ...
+Setting up libsnmp40:amd64 (5.9.3+dfsg-2+deb12u1) ...
+Setting up keepalived (1:2.2.7-1+b2) ...
+invoke-rc.d: policy-rc.d denied execution of start.
+Created symlink /etc/systemd/system/multi-user.target.wants/keepalived.service → /lib/systemd/system/keepalived.service.
+/usr/sbin/policy-rc.d returned 101, not running 'start keepalived.service'
+Processing triggers for dbus (1.14.10-1~deb12u1) ...
+Processing triggers for man-db (2.11.2-2) ...
+Processing triggers for libc-bin (2.36-9+deb12u14) ...
+dpkg rc=0
+$ keepalived --version
+/tmp/kdeb/inst.sh: line 6: keepalived: command not found
+$ keepalived -t
+Disabling track script chk_firewall since not found/accessible
+rc=5
+$ nft -c -f /etc/nftables.conf
+rc=0
+Synchronizing state of keepalived.service with SysV service script with /lib/systemd/systemd-sysv-install.
+Executing: /lib/systemd/systemd-sysv-install enable keepalived
+enable rc=0
+is-enabled: enabled
+is-active: inactive
+$ ip -br addr (after)
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+eth0             UP             172.20.10.2/24 172.20.10.1/24 fe80::20c:29ff:fed2:6d77/64 
+eth1             UP             172.20.20.2/24 172.20.20.1/24 fe80::20c:29ff:fed2:6d81/64 
+eth2             UP             172.20.30.2/24 172.20.30.1/24 fe80::20c:29ff:fed2:6d8b/64 
+eth3             UP             172.20.40.2/24 172.20.40.1/24 fe80::20c:29ff:fed2:6d95/64 
+eth4             UP             172.20.50.2/24 172.20.50.1/24 fe80::20c:29ff:fed2:6d9f/64 
+$ ls policy-rc.d
+ls: cannot access '/usr/sbin/policy-rc.d': No such file or directory
+=============== fw-b 172.20.50.3 (offline install)
+### host fw-b offline install from hash-verified debs
+Selecting previously unselected package libsnmp-base.
+Preparing to unpack .../libsnmp-base_5.9.3+dfsg-2+deb12u1_all.deb ...
+Unpacking libsnmp-base (5.9.3+dfsg-2+deb12u1) ...
+Selecting previously unselected package libsnmp40:amd64.
+Preparing to unpack .../libsnmp40_5.9.3+dfsg-2+deb12u1_amd64.deb ...
+Unpacking libsnmp40:amd64 (5.9.3+dfsg-2+deb12u1) ...
+Selecting previously unselected package perl-modules-5.36.
+Preparing to unpack .../perl-modules-5.36_5.36.0-7+deb12u3_all.deb ...
+Unpacking perl-modules-5.36 (5.36.0-7+deb12u3) ...
+Setting up libgdbm-compat4:amd64 (1.23-3) ...
+Setting up libnl-3-200:amd64 (3.7.0-0.2+b1) ...
+Setting up libnl-genl-3-200:amd64 (3.7.0-0.2+b1) ...
+Setting up libsensors-config (1:3.6.0-7.1) ...
+Setting up libsensors5:amd64 (1:3.6.0-7.1) ...
+Setting up libsnmp-base (5.9.3+dfsg-2+deb12u1) ...
+Setting up perl-modules-5.36 (5.36.0-7+deb12u3) ...
+Setting up libperl5.36:amd64 (5.36.0-7+deb12u3) ...
+Setting up libsnmp40:amd64 (5.9.3+dfsg-2+deb12u1) ...
+Setting up keepalived (1:2.2.7-1+b2) ...
+invoke-rc.d: policy-rc.d denied execution of start.
+Created symlink /etc/systemd/system/multi-user.target.wants/keepalived.service → /lib/systemd/system/keepalived.service.
+/usr/sbin/policy-rc.d returned 101, not running 'start keepalived.service'
+Processing triggers for dbus (1.14.10-1~deb12u1) ...
+Processing triggers for man-db (2.11.2-2) ...
+Processing triggers for libc-bin (2.36-9+deb12u14) ...
+dpkg rc=0
+$ keepalived --version
+/tmp/kdeb/inst.sh: line 6: keepalived: command not found
+$ keepalived -t
+Disabling track script chk_firewall since not found/accessible
+rc=5
+$ nft -c -f /etc/nftables.conf
+rc=0
+Synchronizing state of keepalived.service with SysV service script with /lib/systemd/systemd-sysv-install.
+Executing: /lib/systemd/systemd-sysv-install enable keepalived
+enable rc=0
+is-enabled: enabled
+is-active: inactive
+$ ip -br addr (after)
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+eth0             UP             172.20.10.3/24 fe80::20c:29ff:fed3:1a3f/64 
+eth1             UP             172.20.20.3/24 fe80::20c:29ff:fed3:1a49/64 
+eth2             UP             172.20.30.3/24 fe80::20c:29ff:fed3:1a53/64 
+eth3             UP             172.20.40.3/24 fe80::20c:29ff:fed3:1a5d/64 
+eth4             UP             172.20.50.3/24 fe80::20c:29ff:fed3:1a67/64 
+$ ls policy-rc.d
+ls: cannot access '/usr/sbin/policy-rc.d': No such file or directory
+=============== fw-a 172.20.50.2 (redeploy config with corrected script path)
+10:    script "/usr/local/sbin/keepalived-healthcheck.sh"
+$ keepalived -t
+(VI_10) ignoring tracked script chk_firewall with weights due to SYNC group
+(VI_20) ignoring tracked script chk_firewall with weights due to SYNC group
+(VI_30) ignoring tracked script chk_firewall with weights due to SYNC group
+(VI_40) ignoring tracked script chk_firewall with weights due to SYNC group
+(VI_50) ignoring tracked script chk_firewall with weights due to SYNC group
+rc=5
+$ nft -c -f /etc/nftables.conf
+rc=0
+$ /usr/local/sbin/keepalived-healthcheck.sh
+rc=0
+is-enabled: enabled
+is-active: inactive
+nftables: active
+-rw-r--r-- 1 root root 2319 Nov 13 01:29 /etc/keepalived/keepalived.conf
+-rwxr-xr-x 1 root root  174 Nov 13 01:26 /usr/local/sbin/keepalived-healthcheck.sh
+total 12
+-rw-r----- 1 root root  508 Nov 13 01:26 ip-br-addr.txt
+-rw-r--r-- 1 root root 4416 Nov 13 01:26 nftables.conf
+$ ip -br addr (final)
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+eth0             UP             172.20.10.2/24 172.20.10.1/24 fe80::20c:29ff:fed2:6d77/64 
+eth1             UP             172.20.20.2/24 172.20.20.1/24 fe80::20c:29ff:fed2:6d81/64 
+eth2             UP             172.20.30.2/24 172.20.30.1/24 fe80::20c:29ff:fed2:6d8b/64 
+eth3             UP             172.20.40.2/24 172.20.40.1/24 fe80::20c:29ff:fed2:6d95/64 
+eth4             UP             172.20.50.2/24 172.20.50.1/24 fe80::20c:29ff:fed2:6d9f/64 
+=============== fw-b 172.20.50.3 (redeploy config with corrected script path)
+10:    script "/usr/local/sbin/keepalived-healthcheck.sh"
+$ keepalived -t
+(VI_10) ignoring tracked script chk_firewall with weights due to SYNC group
+(VI_20) ignoring tracked script chk_firewall with weights due to SYNC group
+(VI_30) ignoring tracked script chk_firewall with weights due to SYNC group
+(VI_40) ignoring tracked script chk_firewall with weights due to SYNC group
+(VI_50) ignoring tracked script chk_firewall with weights due to SYNC group
+rc=5
+$ nft -c -f /etc/nftables.conf
+rc=0
+$ /usr/local/sbin/keepalived-healthcheck.sh
+rc=0
+is-enabled: enabled
+is-active: inactive
+nftables: active
+-rw-r--r-- 1 root root 2319 Nov 13 01:29 /etc/keepalived/keepalived.conf
+-rwxr-xr-x 1 root root  174 Nov 13 01:27 /usr/local/sbin/keepalived-healthcheck.sh
+total 12
+-rw-r----- 1 root root  433 Nov 13 01:27 ip-br-addr.txt
+-rw-r--r-- 1 root root 4400 Nov 13 01:27 nftables.conf
+$ ip -br addr (final)
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+eth0             UP             172.20.10.3/24 fe80::20c:29ff:fed3:1a3f/64 
+eth1             UP             172.20.20.3/24 fe80::20c:29ff:fed3:1a49/64 
+eth2             UP             172.20.30.3/24 fe80::20c:29ff:fed3:1a53/64 
+eth3             UP             172.20.40.3/24 fe80::20c:29ff:fed3:1a5d/64 
+eth4             UP             172.20.50.3/24 fe80::20c:29ff:fed3:1a67/64 
+=============== fw-a 172.20.50.2 (redeploy config: weight removed, script path fixed)
+$ sudo keepalived -t -f /etc/keepalived/keepalived.conf
+rc=0
+$ sudo nft -c -f /etc/nftables.conf
+rc=0
+is-enabled: enabled
+is-active: inactive
+nftables: active
+$ ip -br addr | grep -c VIPs
+eth0             UP             172.20.10.2/24 172.20.10.1/24 fe80::20c:29ff:fed2:6d77/64 
+eth1             UP             172.20.20.2/24 172.20.20.1/24 fe80::20c:29ff:fed2:6d81/64 
+eth2             UP             172.20.30.2/24 172.20.30.1/24 fe80::20c:29ff:fed2:6d8b/64 
+eth3             UP             172.20.40.2/24 172.20.40.1/24 fe80::20c:29ff:fed2:6d95/64 
+eth4             UP             172.20.50.2/24 172.20.50.1/24 fe80::20c:29ff:fed2:6d9f/64 
+=============== fw-b 172.20.50.3 (redeploy config: weight removed, script path fixed)
+$ sudo keepalived -t -f /etc/keepalived/keepalived.conf
+rc=0
+$ sudo nft -c -f /etc/nftables.conf
+rc=0
+is-enabled: enabled
+is-active: inactive
+nftables: active
+$ ip -br addr | grep -c VIPs
+eth0             UP             172.20.10.3/24 fe80::20c:29ff:fed3:1a3f/64 
+eth1             UP             172.20.20.3/24 fe80::20c:29ff:fed3:1a49/64 
+eth2             UP             172.20.30.3/24 fe80::20c:29ff:fed3:1a53/64 
+eth3             UP             172.20.40.3/24 fe80::20c:29ff:fed3:1a5d/64 
+eth4             UP             172.20.50.3/24 fe80::20c:29ff:fed3:1a67/64 
