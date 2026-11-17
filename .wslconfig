@@ -1,0 +1,6 @@
+[wsl2]
+memory=2GB
+processors=2
+swap=0
+localhostForwarding=true
+# ponytail: 2GB cap keeps ~29GB free for Windows + VMware 6-VM profile; raise if running heavy build in WSL
