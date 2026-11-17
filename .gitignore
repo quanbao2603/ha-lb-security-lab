@@ -15,6 +15,11 @@
 *.nvram
 *.vmx.lck/
 
+# Local VM disks, ISOs and installers (many GB, never shareable)
+vms/
+isos/
+*.exe
+
 # Local evidence that may contain credentials
 .evidence-private/
 
