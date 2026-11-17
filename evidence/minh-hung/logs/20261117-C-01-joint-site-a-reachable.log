@@ -1,0 +1,26 @@
+### EV17-C-01 | joint-site-a-reachable | 2026-11-17T02:14:00+07:00 | target=jump:172.20.20.6
+Warning: Permanently added '172.20.20.6' (ED25519) to the list of known hosts.
+=== C-01 / J-01: Site A reachable, Site B control intact ===
++ echo '=== C-01 / J-01: Site A reachable, Site B control intact ==='
++ date -Is
+2026-11-17T02:14:01+07:00
+--- Site A Web VIP (172.20.21.100) via Tailscale ---
++ echo '--- Site A Web VIP (172.20.21.100) via Tailscale ---'
++ curl -s -o /dev/null -w '  siteA_vip_http=%{http_code}\n' -m 10 http://172.20.21.100/healthz
+  siteA_vip_http=200
+--- allowed path: Log-Monitor syslog 514 ---
+  syslog_514_exit=0 (0=allowed)
+--- blocked path: DB 5432 from DMZ ---
++ echo '--- allowed path: Log-Monitor syslog 514 ---'
++ timeout 4 bash -c 'echo >/dev/tcp/172.20.50.10/514'
++ echo '  syslog_514_exit=0 (0=allowed)'
++ echo '--- blocked path: DB 5432 from DMZ ---'
++ timeout 4 bash -c '</dev/tcp/172.20.40.11/5432'
+  db_5432_exit=124 (124=blocked)
+--- route to Site A subnet goes via tailscale0 ---
++ echo '  db_5432_exit=124 (124=blocked)'
++ echo '--- route to Site A subnet goes via tailscale0 ---'
+172.20.21.5 dev tailscale0 table 52 src 100.64.115.23 uid 1000 
++ head -1
++ ip route get 172.20.21.5
+END=2026-11-17T02:14:05+07:00

@@ -1,0 +1,24 @@
+### EV17-SB-27 | baseline-restored-primary | 2026-11-17T02:28:06+07:00 | target=jump:172.20.40.12
+Warning: Permanently added '172.20.40.12' (ED25519) to the list of known hosts.
+=== BASELINE RESTORED: .12 PRIMARY streaming -> .11 STANDBY ===
++ echo '=== BASELINE RESTORED: .12 PRIMARY streaming -> .11 STANDBY ==='
++ date -Is
+2026-11-17T02:28:07+07:00
+db-replica
+pg_is_in_recovery = + hostname
++ echo -n 'pg_is_in_recovery = '
++ sudo -n -u postgres psql -tAc 'select pg_is_in_recovery()'
+f
+--- replication link ---
++ echo '--- replication link ---'
++ sudo -n -u postgres psql -c 'select client_addr, state, sync_state, sent_lsn, replay_lsn from pg_stat_replication'
+ client_addr  |   state   | sync_state |  sent_lsn  | replay_lsn 
+--------------+-----------+------------+------------+------------
+ 172.20.40.11 | streaming | async      | 0/12000060 | 0/12000060
+(1 row)
+
+--- physical slot ---
+replica_slot_1 active=true
++ echo '--- physical slot ---'
++ sudo -n -u postgres psql -tAc 'select slot_name || '\'' active='\'' || active from pg_replication_slots'
+END=2026-11-17T02:28:06+07:00

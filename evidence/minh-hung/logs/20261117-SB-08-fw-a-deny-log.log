@@ -1,0 +1,28 @@
+### EV17-SB-08 | fw-a-deny-log | 2026-11-17T01:16:35+07:00 | target=172.20.50.2
+Warning: Permanently added '172.20.50.2' (ED25519) to the list of known hosts.
++ echo '=== Firewall-A: deny counters after SB-07 negative probes ==='
+=== Firewall-A: deny counters after SB-07 negative probes ===
++ date -Is
+2026-11-17T01:16:37+07:00
++ hostname
+fw-a
+forward FW-DEFAULT-DENY  : + echo -n 'forward FW-DEFAULT-DENY  : '
++ grep -o 'counter packets [0-9]* bytes [0-9]*'
++ grep FW-DEFAULT-DENY
++ sudo -n nft list chain inet filter forward
+counter packets 42 bytes 2520
+input  FW-DENY-INPUT-DEF : + echo -n 'input  FW-DENY-INPUT-DEF : '
++ grep -o 'counter packets [0-9]* bytes [0-9]*'
++ grep INPUT-DEFAULT
++ sudo -n nft list chain inet filter input
+counter packets 795 bytes 60069
+--- proof: blocked source from SB-07 ---
++ echo '--- proof: blocked source from SB-07 ---'
++ cut -c1-78
++ sed 's/.*FW-DEFAULT-DENY/FW-DEFAULT-DENY/'
++ tail -1
++ grep SRC=172.20.20.6
++ grep FW-DEFAULT-DENY
++ sudo -n journalctl -k --since '-15 min' --no-pager
+FW-DEFAULT-DENY:] IN=eth1 OUT=eth3 MACSRC=00:0c:29:6c:3e:59 MACDST=00:0c:29:d2
+END=2026-11-17T01:16:36+07:00

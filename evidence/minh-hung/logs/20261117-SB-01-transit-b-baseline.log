@@ -1,0 +1,38 @@
+### EV17-SB-01 | transit-b-baseline | 2026-11-17T00:46:48+07:00 | target=jump:172.20.20.6
+Warning: Permanently added '172.20.20.6' (ED25519) to the list of known hosts.
++ date -Is
+2026-11-17T00:46:49+07:00
+transit-b
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+eth0             UP             172.20.20.6/24 fe80::20c:29ff:fe6c:3e59/64 
+eth1             UP             192.168.30.128/24 metric 1024 fe80::20c:29ff:fe6c:3e63/64 
+tailscale0       UNKNOWN        100.64.115.23/32 fd7a:115c:a1e0::1936:7318/128 fe80::851c:7622:d09b:2ad/64 
+--- default route + lab route ---
++ hostname
++ ip -br addr
++ echo '--- default route + lab route ---'
++ grep -E 'default|172.20.0.0/16'
++ ip route
+default via 192.168.30.2 dev eth1 proto dhcp src 192.168.30.128 metric 1024 
+172.20.0.0/16 via 172.20.20.1 dev eth0 proto static 
+--- ip_forward ---
+1
+--- tailscale ---
+100.64.115.23
++ echo '--- ip_forward ---'
++ cat /proc/sys/net/ipv4/ip_forward
++ echo '--- tailscale ---'
++ tailscale ip -4
++ head -5
++ tailscale status
+100.64.115.23   transit-b        athenaedu01@  linux    -  
+100.82.115.17   desktop-ni199v3  athenaedu01@  windows  -  
+100.76.150.63   iphone           athenaedu01@  windows  -  
+100.99.198.105  transit-a        athenaedu01@  linux    -  
+
+--- route to DB via gateway ---
+172.20.40.11 via 172.20.20.1 dev eth0 src 172.20.20.6 uid 1000 
+    cache 
++ echo '--- route to DB via gateway ---'
++ ip route get 172.20.40.11
+END=2026-11-17T00:46:49+07:00

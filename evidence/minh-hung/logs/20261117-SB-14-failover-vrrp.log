@@ -1,0 +1,28 @@
+### EV17-SB-14 | failover-vrrp | 2026-11-17T02:43:35+07:00 | target=172.20.50.2
+Warning: Permanently added '172.20.50.2' (ED25519) to the list of known hosts.
+=== FAILOVER: stop Keepalived on Firewall-A only ===
++ echo '=== FAILOVER: stop Keepalived on Firewall-A only ==='
++ date -Is
+2026-11-17T02:43:36+07:00
++ hostname
+fw-a
+++ systemctl is-active keepalived
+++ grep -c secondary
+++ ip -4 addr show
+t0: a_keepalived=active  a_vip=5
++ echo 't0: a_keepalived=active  a_vip=5'
++ sudo -n systemctl stop keepalived
++ sleep 3
+++ systemctl is-active keepalived
+++ grep -c secondary
+++ ip -4 addr show
+t1: a_keepalived=inactive  a_vip=0
++ echo 't1: a_keepalived=inactive  a_vip=0'
+++ systemctl is-active nftables
+t1: a_nftables=active (filtering must stay on)
++ echo 't1: a_nftables=active (filtering must stay on)'
++ head -1
++ grep -o 'policy drop'
++ sudo -n nft list chain inet filter forward
+policy drop
+END=2026-11-17T02:43:39+07:00

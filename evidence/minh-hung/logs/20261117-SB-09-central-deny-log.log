@@ -1,0 +1,37 @@
+### EV17-SB-09 | central-deny-log | 2026-11-17T01:18:32+07:00 | target=172.20.50.10
+Warning: Permanently added '172.20.50.10' (ED25519) to the list of known hosts.
+=== Log-Monitor: central deny log receives Firewall-A events ===
++ echo '=== Log-Monitor: central deny log receives Firewall-A events ==='
++ date -Is
+2026-11-17T01:18:34+07:00
++ hostname
+log-monitor
+--- same blocked source as SB-07, now at central syslog ---
++ echo '--- same blocked source as SB-07, now at central syslog ---'
++ sed 's/.*FW-DEFAULT-DENY/FW-DEFAULT-DENY/'
++ cut -c1-95
++ tail -2
++ grep SRC=172.20.20.6
++ sudo -n grep -h FW-DEFAULT-DENY /var/log/central/fw-a/kernel.log
+FW-DEFAULT-DENY:] IN=eth1 OUT=eth3 MACSRC=00:0c:29:6c:3e:59 MACDST=00:0c:29:d2:6d:81 MACPROTO=0
+FW-DEFAULT-DENY:] IN=eth1 OUT=eth3 MACSRC=00:0c:29:6c:3e:59 MACDST=00:0c:29:d2:6d:81 MACPROTO=0
+--- central host directories ---
++ echo '--- central host directories ---'
++ tr '\n' ' '
++ sort
++ sudo -n find /var/log/central -mindepth 1 -maxdepth 1 -type d -printf '%f\n'
+db-primary db-replica fw-a fw-b transit-b 
+--- fresh writes (recent files) ---
++ echo
++ echo '--- fresh writes (recent files) ---'
++ head -6
++ sort
++ sed 's|/var/log/central/||'
++ sudo -n find /var/log/central -type f -newermt '-30 min' -printf '%h/%f\n'
+db-replica/(sd-pam).log
+db-replica/(systemd).log
+db-replica/postgres.log
+db-replica/sshd.log
+db-replica/sudo.log
+db-replica/systemd-logind.log
+END=2026-11-17T01:18:33+07:00

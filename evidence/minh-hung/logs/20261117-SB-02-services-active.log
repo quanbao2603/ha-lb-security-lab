@@ -1,0 +1,28 @@
+### EV17-SB-02 | services-active | 2026-11-17T00:48:48+07:00 | target=jump:172.20.20.6
+Warning: Permanently added '172.20.20.6' (ED25519) to the list of known hosts.
++ set +e
+===== 172.20.50.2 =====
++ for h in 172.20.50.2 172.20.50.10
++ echo '===== 172.20.50.2 ====='
++ ssh -T -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=8 ops@172.20.50.2 'hostname; date -Is; echo "nftables=$(systemctl is-active nftables) rsyslog=$(systemctl is-active rsyslog) postgresql=$(systemctl is-active postgresql)"; systemctl is-active postgresql rsyslog nftables 2>/dev/null | tr "\n" " "; echo'
+ssh: connect to host 172.20.50.2 port 22: Connection timed out
+===== 172.20.50.10 =====
++ for h in 172.20.50.2 172.20.50.10
++ echo '===== 172.20.50.10 ====='
++ ssh -T -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=8 ops@172.20.50.10 'hostname; date -Is; echo "nftables=$(systemctl is-active nftables) rsyslog=$(systemctl is-active rsyslog) postgresql=$(systemctl is-active postgresql)"; systemctl is-active postgresql rsyslog nftables 2>/dev/null | tr "\n" " "; echo'
+ssh: connect to host 172.20.50.10 port 22: Connection timed out
+===== DB nodes (via jump) =====
+----- 172.20.40.12 -----
++ echo '===== DB nodes (via jump) ====='
++ for h in 172.20.40.12 172.20.40.11
++ echo '----- 172.20.40.12 -----'
++ ssh -T -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=8 -J ops@172.20.50.10 ops@172.20.40.12 'hostname; echo "postgresql=$(systemctl is-active postgresql)"; sudo -n -u postgres psql -tAc "select pg_is_in_recovery()"'
+Connection timed out during banner exchange
+Connection to UNKNOWN port 65535 timed out
+----- 172.20.40.11 -----
++ for h in 172.20.40.12 172.20.40.11
++ echo '----- 172.20.40.11 -----'
++ ssh -T -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=8 -J ops@172.20.50.10 ops@172.20.40.11 'hostname; echo "postgresql=$(systemctl is-active postgresql)"; sudo -n -u postgres psql -tAc "select pg_is_in_recovery()"'
+Connection timed out during banner exchange
+Connection to UNKNOWN port 65535 timed out
+END=2026-11-17T00:49:21+07:00

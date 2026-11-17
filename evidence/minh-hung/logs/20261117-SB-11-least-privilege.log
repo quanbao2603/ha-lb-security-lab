@@ -1,0 +1,25 @@
+### EV17-SB-11 | least-privilege | 2026-11-17T01:35:37+07:00 | target=jump:172.20.40.12
+Warning: Permanently added '172.20.40.12' (ED25519) to the list of known hosts.
+=== Least privilege: app_user on health_checks (3-way proof) ===
++ echo '=== Least privilege: app_user on health_checks (3-way proof) ==='
++ date -Is
+2026-11-17T01:35:38+07:00
+db-replica
+1) grants: + hostname
++ echo -n '1) grants: '
++ sudo -n -u postgres psql -d ha_lab_db -tAc 'select string_agg(privilege_type, '\'', '\'' order by privilege_type) from information_schema.table_privileges where table_name='\''health_checks'\'' and grantee='\''app_user'\'''
+INSERT, SELECT, UPDATE
+2) INSERT as app_user -> + echo -n '2) INSERT as app_user -> '
+id=115
+3) DELETE as app_user -> + sudo -n -u postgres psql -d ha_lab_db -qtAc 'SET ROLE app_user; INSERT INTO health_checks(node_name,status) VALUES ('\''SB-LEAST-PRIV'\'','\''OK'\'') RETURNING '\''id='\''||id;'
++ echo -n '3) DELETE as app_user -> '
++ head -1
++ grep ERROR
++ sudo -n -u postgres psql -d ha_lab_db -qtAc 'SET ROLE app_user; DELETE FROM health_checks WHERE node_name='\''SB-LEAST-PRIV'\'';'
+ERROR:  permission denied for table health_checks
+4) DROP TABLE as app_user -> + echo -n '4) DROP TABLE as app_user -> '
++ sudo -n -u postgres psql -d ha_lab_db -qtAc 'SET ROLE app_user; DROP TABLE health_checks;'
++ head -1
++ grep ERROR
+ERROR:  must be owner of table health_checks
+END=2026-11-17T01:35:38+07:00

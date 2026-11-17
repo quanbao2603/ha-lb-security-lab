@@ -1,0 +1,30 @@
+### EV17-SB-07 | negative-probes | 2026-11-17T01:06:35+07:00 | target=jump:172.20.20.6
+Warning: Permanently added '172.20.20.6' (ED25519) to the list of known hosts.
+=== Negative probes: DMZ -> DB / MGMT (must be blocked) ===
++ echo '=== Negative probes: DMZ -> DB / MGMT (must be blocked) ==='
++ date -Is
+2026-11-17T01:06:36+07:00
+transit-b
+--- DB primary 5432 ---
++ hostname
++ echo '--- DB primary 5432 ---'
++ timeout 4 bash -c '</dev/tcp/172.20.40.12/5432'
+db_primary_5432_exit=124
+--- DB standby 5432 ---
++ echo db_primary_5432_exit=124
++ echo '--- DB standby 5432 ---'
++ timeout 4 bash -c '</dev/tcp/172.20.40.11/5432'
+db_standby_5432_exit=124
+--- Firewall-A direct SSH (must go via MGMT only) ---
++ echo db_standby_5432_exit=124
++ echo '--- Firewall-A direct SSH (must go via MGMT only) ---'
++ timeout 4 bash -c '</dev/tcp/172.20.50.2/22'
+fw_a_ssh_exit=124
+=== control: same host, ICMP allowed ===
++ echo fw_a_ssh_exit=124
++ echo '=== control: same host, ICMP allowed ==='
++ tail -2
++ ping -c 2 -W 2 172.20.40.12
+2 packets transmitted, 2 received, 0% packet loss, time 1002ms
+rtt min/avg/max/mdev = 1.170/1.413/1.656/0.243 ms
+END=2026-11-17T01:06:49+07:00

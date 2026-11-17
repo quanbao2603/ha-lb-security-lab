@@ -1,0 +1,24 @@
+### EV17-SB-22a | final-primary | 2026-11-17T02:09:35+07:00 | target=jump:172.20.40.11
+Warning: Permanently added '172.20.40.11' (ED25519) to the list of known hosts.
+=== FINAL STATE A: .11 PRIMARY, streaming to .12 ===
++ echo '=== FINAL STATE A: .11 PRIMARY, streaming to .12 ==='
++ date -Is
+2026-11-17T02:09:37+07:00
+db-primary
+pg_is_in_recovery = f
+--- replication link ---
++ hostname
++ echo -n 'pg_is_in_recovery = '
++ sudo -n -u postgres psql -tAc 'select pg_is_in_recovery()'
++ echo '--- replication link ---'
++ sudo -n -u postgres psql -c 'select client_addr, state, sync_state from pg_stat_replication'
+ client_addr  |   state   | sync_state 
+--------------+-----------+------------
+ 172.20.40.12 | streaming | async
+(1 row)
+
+--- physical slot ---
++ echo '--- physical slot ---'
++ sudo -n -u postgres psql -tAc 'select slot_name||'\'' active='\''||active from pg_replication_slots'
+replica_slot_1 active=true
+END=2026-11-17T02:09:35+07:00

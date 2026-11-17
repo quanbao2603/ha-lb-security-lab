@@ -1,0 +1,23 @@
+### EV17-SB-02b | services-log-monitor | 2026-11-17T00:53:11+07:00 | target=172.20.50.10
+Warning: Permanently added '172.20.50.10' (ED25519) to the list of known hosts.
+=== NODE: log-monitor (172.20.50.10) ===
++ echo '=== NODE: log-monitor (172.20.50.10) ==='
++ date -Is
+2026-11-17T00:53:12+07:00
++ hostname
+log-monitor
+++ systemctl is-active rsyslog
+rsyslog:   active
++ echo 'rsyslog:   active'
+++ systemctl is-active nftables
+nftables:  inactive
+--- listener 514 ---
++ echo 'nftables:  inactive'
++ echo '--- listener 514 ---'
++ grep :514
++ sudo -n ss -lunp
+UNCONN 0      0       172.20.50.10:514       0.0.0.0:*    users:(("rsyslogd",pid=438,fd=6))        
++ grep :514
++ sudo -n ss -ltnp
+LISTEN 0      25      172.20.50.10:514       0.0.0.0:*    users:(("rsyslogd",pid=438,fd=7))        
+END=2026-11-17T00:53:11+07:00

@@ -1,0 +1,30 @@
+### EV17-SB-16 | negative-during-failover | 2026-11-17T01:47:38+07:00 | target=jump:172.20.20.6
+Warning: Permanently added '172.20.20.6' (ED25519) to the list of known hosts.
+=== NEGATIVE SECURITY WHILE FIREWALL-B HOLDS VIPs ===
++ echo '=== NEGATIVE SECURITY WHILE FIREWALL-B HOLDS VIPs ==='
++ date -Is
+2026-11-17T01:47:39+07:00
+transit-b
+--- DMZ -> DB 5432 (must stay blocked) ---
++ hostname
++ echo '--- DMZ -> DB 5432 (must stay blocked) ---'
++ timeout 4 bash -c '</dev/tcp/172.20.40.12/5432'
+db_exit=124
+--- DMZ -> FW VIP SSH 22 (must stay blocked) ---
++ echo db_exit=124
++ echo '--- DMZ -> FW VIP SSH 22 (must stay blocked) ---'
++ timeout 4 bash -c '</dev/tcp/172.20.50.1/22'
+vip_ssh_exit=124
+--- DMZ -> Log-Monitor 514 (allowed path must still work) ---
++ echo vip_ssh_exit=124
++ echo '--- DMZ -> Log-Monitor 514 (allowed path must still work) ---'
++ timeout 4 bash -c 'echo >/dev/tcp/172.20.50.10/514'
+syslog_exit=0 (0=allowed)
+--- gateway still answers on new owner ---
++ echo 'syslog_exit=0 (0=allowed)'
++ echo '--- gateway still answers on new owner ---'
++ ping -c 2 -W 2 172.20.40.1
++ tail -2
+2 packets transmitted, 2 received, 0% packet loss, time 1025ms
+rtt min/avg/max/mdev = 0.225/0.484/0.744/0.259 ms
+END=2026-11-17T01:47:48+07:00
