@@ -1,0 +1,22 @@
+Warning: Permanently added '172.20.50.10' (ED25519) to the list of known hosts.
+date -Is
+hostname
+sudo -n systemctl is-active nftables rsyslog postgresql
+Linux log-monitor 6.1.0-54-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.190-1 (2026-10-16) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Thu Nov 12 21:46:47 2026 from 172.20.50.254
+[?2004h]0;ops@log-monitor: ~[01;32mops@log-monitor[00m:[01;34m~[00m$ date -Is
+[?2004l2026-11-12T21:54:11+07:00
+[?2004h]0;ops@log-monitor: ~[01;32mops@log-monitor[00m:[01;34m~[00m$ hostname
+[?2004llog-monitor
+[?2004h]0;ops@log-monitor: ~[01;32mops@log-monitor[00m:[01;34m~[00m$ sudo -n systemctl is-active nftables rsyslog postgresql
+[?2004linactive
+active
+inactive
+[?2004h]0;ops@log-monitor: ~[01;32mops@log-monitor[00m:[01;34m~[00m$ 

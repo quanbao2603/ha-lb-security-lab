@@ -1,0 +1,35 @@
+### EV17-SB-24 | vrrp-backup-config | 2026-11-17T02:17:55+07:00 | target=172.20.50.3
+Warning: Permanently added '172.20.50.3' (ED25519) to the list of known hosts.
+=== Firewall-B mirrors the same 5 VRIDs as BACKUP ===
++ echo '=== Firewall-B mirrors the same 5 VRIDs as BACKUP ==='
++ date -Is
+2026-11-17T02:17:56+07:00
++ hostname
+fw-b
+--- sync group ---
++ echo '--- sync group ---'
++ sudo -n sed -n '/vrrp_sync_group VG_FW/,/^}/p' /etc/keepalived/keepalived.conf
+vrrp_sync_group VG_FW {
+    group {
+        VI_10
+        VI_20
+        VI_30
+        VI_40
+        VI_50
+    }
+}
+--- BACKUP role + peer ---
++ echo '--- BACKUP role + peer ---'
++ head -8
++ grep -vE '^--$'
++ sudo -n grep -E 'state BACKUP|priority 100|unicast_src_ip|unicast_peer' -A1 /etc/keepalived/keepalived.conf
++ sed 's/^\s*//'
+state BACKUP
+interface eth0
+priority 100
+advert_int 1
+unicast_src_ip 172.20.10.3
+unicast_peer {
+172.20.10.2
+state BACKUP
+END=2026-11-17T02:17:55+07:00

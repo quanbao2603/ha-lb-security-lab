@@ -1,0 +1,24 @@
+Warning: Permanently added '172.20.40.11' (ED25519) to the list of known hosts.
+Linux db-primary 6.1.0-54-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.190-1 (2026-10-16) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Thu Nov 12 22:39:23 2026 from 172.20.50.10
+set +e; date -Is; hostname; echo '--- stop old primary ---'; sudo -n systemctl stop postgresql; echo '--- empty data dir ---'; sudo -n sh -c 'rm -rf /var/lib/postgresql/16/main/*'; sudo -n find /var/lib/postgresql/16/main -mindepth 1 | wc -l; echo '--- pg_basebackup from .12 ---'; sudo -n -u postgres pg_basebackup -h 172.20.40.12 -p 5432 -U repl_user -D /var/lib/postgresql/16/main -Fp -Xs -P -R; echo '--- start standby ---'; sudo -n systemctl start postgresql; sleep 2; sudo -n -u postgres psql -P pager=off -t -c "SELECT pg_is_in_recovery();"
+[?2004h]0;ops@db-primary: ~[01;32mops@db-primary[00m:[01;34m~[00m$ set +e; date -Is; hostname; echo '--- stop old primary ---'; sudo -n systemctl stop postgresql; echo '--- empty data dir ---'; sudo -n sh -c 'rm -rf /var/lib/postgresql/16/main/*'; sudo -n find /var/lib/postgresql/16/main -mindepth 1 | wc -l; echo '--- pg_basebackup from .12 ---'; sudo -n -u postgres pg_basebackup -h 172.20.40.12 -p 5432 -U repl_user -D /var/lib/postgresql/16/main -Fp -Xs -P -R; echo '--- start standby ---'; sudo -n systemctl start postgresql; sleep 2; sudo -n -u postgres psql -P pager=off -t -c "SELECT pg_is_in_recovery();"
+[?2004l2026-11-12T22:41:38+07:00
+db-primary
+--- stoConnection to 172.20.40.11 closed by remote host.
+Connection to 172.20.40.11 closed.
+client_loop: send disconnect: Broken pipe
+blespace30640/30640 kB (100%), 1/1 tablespace
+--- start standby ---
+ t
+
+[?2004h]0;ops@db-primary: ~[01;32mops@db-primary[00m:[01;34m~[00m$ Connection to 172.20.40.11 closed by remote host.
+Connection to 172.20.40.11 closed.
+client_loop: send disconnect: Broken pipe

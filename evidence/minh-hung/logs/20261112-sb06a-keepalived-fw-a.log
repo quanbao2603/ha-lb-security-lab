@@ -1,0 +1,23 @@
+Warning: Permanently added '172.20.50.2' (ED25519) to the list of known hosts.
+set +e
+date -Is
+hostname
+systemctl is-active keepalived 2>&1; echo rc=$?
+Linux fw-a 6.1.0-54-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.190-1 (2026-10-16) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Thu Nov 12 22:08:07 2026 from 172.20.50.254
+[?2004h]0;ops@fw-a: ~[01;32mops@fw-a[00m:[01;34m~[00m$ set +e
+[?2004l[?2004h]0;ops@fw-a: ~[01;32mops@fw-a[00m:[01;34m~[00m$ date -Is
+[?2004l2026-11-12T22:11:19+07:00
+[?2004h]0;ops@fw-a: ~[01;32mops@fw-a[00m:[01;34m~[00m$ hostname
+[?2004lfw-a
+[?2004h]0;ops@fw-a: ~[01;32mops@fw-a[00m:[01;34m~[00m$ systemctl is-active keepalived 2>&1; echo rc=$?
+[?2004linactive
+rc=3
+[?2004h]0;ops@fw-a: ~[01;32mops@fw-a[00m:[01;34m~[00m$ 

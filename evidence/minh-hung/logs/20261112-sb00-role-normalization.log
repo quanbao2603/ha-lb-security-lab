@@ -1,0 +1,94 @@
+== T0 2026-11-12T21:34:07+07:00 ==
+-- stop postgresql on .12 (current primary) --
+Warning: Permanently added '172.20.40.12' (ED25519) to the list of known hosts.
+inactive
+-- promote .11 --
+Warning: Permanently added '172.20.40.11' (ED25519) to the list of known hosts.
+ pg_promote 
+------------
+ t
+(1 row)
+
+ f
+
+-- rejoin .12 as standby via pg_basebackup from .11 --
+Warning: Permanently added '172.20.40.12' (ED25519) to the list of known hosts.
+pg_basebackup: error: directory "/var/lib/postgresql/16/main" exists but is not empty
+ f
+
+-- verify replication .11 -> .12 --
+Warning: Permanently added '172.20.40.11' (ED25519) to the list of known hosts.
+ f
+
+
+Warning: Permanently added '172.20.40.12' (ED25519) to the list of known hosts.
+ f
+
+== T1 2026-11-12T21:34:15+07:00 ==
+== FIX 2026-11-12T21:34:51+07:00 ==
+-- stop .12 immediately (split-brain guard) --
+Warning: Permanently added '172.20.40.12' (ED25519) to the list of known hosts.
+inactive
+-- inspect leftover entries --
+Warning: Permanently added '172.20.40.12' (ED25519) to the list of known hosts.
+total 272
+drwx------ 19 postgres postgres   4096 Nov 12 21:34 .
+drwxr-xr-x  3 postgres postgres   4096 Nov  8 00:30 ..
+-rw-------  1 postgres postgres      3 Nov  8 07:09 PG_VERSION
+-rw-------  1 postgres postgres    225 Nov  8 07:09 backup_label.old
+-rw-------  1 postgres postgres 181412 Nov  8 07:09 backup_manifest
+drwx------  7 postgres postgres   4096 Nov 10 04:47 base
+drwx------  2 postgres postgres   4096 Nov 12 21:34 global
+drwx------  2 postgres postgres   4096 Nov  8 07:09 pg_commit_ts
+drwx------  2 postgres postgres   4096 Nov  8 07:09 pg_dynshmem
+drwx------  4 postgres postgres   4096 Nov 12 21:34 pg_logical
+drwx------  4 postgres postgres   4096 Nov  8 07:09 pg_multixact
+-- delete everything incl. dotfiles --
+Warning: Permanently added '172.20.40.12' (ED25519) to the list of known hosts.
+0
+-- pg_basebackup .12 from .11 --
+Warning: Permanently added '172.20.40.12' (ED25519) to the list of known hosts.
+waiting for checkpoint
+  146/30629 kB (0%), 0/1 tablespace
+  491/30629 kB (1%), 0/1 tablespace
+  914/30629 kB (2%), 0/1 tablespace
+ 1056/30629 kB (3%), 0/1 tablespace
+ 1327/30629 kB (4%), 0/1 tablespace
+ 1886/30629 kB (6%), 0/1 tablespace
+ 4391/30629 kB (14%), 0/1 tablespace
+ 7142/30629 kB (23%), 0/1 tablespace
+ 7750/30629 kB (25%), 0/1 tablespace
+11316/30629 kB (36%), 0/1 tablespace
+13975/30629 kB (45%), 0/1 tablespace
+15596/30629 kB (50%), 0/1 tablespace
+17152/30629 kB (55%), 0/1 tablespace
+19372/30629 kB (63%), 0/1 tablespace
+24964/30629 kB (81%), 0/1 tablespace
+29240/30629 kB (95%), 0/1 tablespace
+30640/30640 kB (100%), 0/1 tablespace
+30640/30640 kB (100%), 1/1 tablespace
+ t
+
+-- verify streaming .11 -> .12 --
+Warning: Permanently added '172.20.40.11' (ED25519) to the list of known hosts.
+ f
+
+
+== FIX-DONE 2026-11-12T21:35:20+07:00 ==
+== STREAMING FIX 2026-11-12T23:09:48+07:00 ==
+-- create replica slot on current primary .12 --
+Warning: Permanently added '172.20.40.12' (ED25519) to the list of known hosts.
+ pg_create_physical_replication_slot 
+-------------------------------------
+ (replica_slot_1,)
+(1 row)
+
+-- primary .12 replication --
+Warning: Permanently added '172.20.40.12' (ED25519) to the list of known hosts.
+ 172.20.40.11 | streaming | async
+
+-- standby .11 receiver --
+Warning: Permanently added '172.20.40.11' (ED25519) to the list of known hosts.
+ streaming | 172.20.40.12
+
+== STREAMING FIX DONE 2026-11-12T23:09:58+07:00 ==

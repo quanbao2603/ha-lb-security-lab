@@ -1,0 +1,20 @@
+Warning: Permanently added '172.20.40.12' (ED25519) to the list of known hosts.
+Linux db-replica 6.1.0-54-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.190-1 (2026-10-16) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Thu Nov 12 22:31:31 2026 from 172.20.50.10
+set +e; date -Is; hostname; sudo -n -u postgres psql -P pager=off -d ha_lab_db -t -c "SELECT id,node_name FROM health_checks WHERE node_name='SB-LEAST-PRIV' ORDER BY id DESC LIMIT 1;"
+[?2004h]0;ops@db-replica: ~[01;32mops@db-replica[00m:[01;34m~[00m$ set +e; date -Is; hostname; sudo -n -u postgres psql -P pager=off -d ha_lab_db -t -c "SELECT id,node_name FROM health_checks WHERE node_name='SB-LEAST-PRIV' ORDER BY id DESC LIMIT 1;"
+[?2004l2026-11-12T22:33:32+07:00
+db-replica
+ 77 | SB-LEAST-PRIV
+
+[?2004h]0;ops@db-replica: ~[01;32mops@db-replica[00m:[01;34m~[00m$ Connection to 172.20.40.12 closed by remote host.
+Connection tConnection to 172.20.40.12 closed by remote host.
+Connection to 172.20.40.12 closed.
+client_loop: send disconnect: Broken pipe

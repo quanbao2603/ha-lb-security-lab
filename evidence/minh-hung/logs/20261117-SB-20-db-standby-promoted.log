@@ -1,0 +1,23 @@
+### EV17-SB-20 | db-standby-promoted | 2026-11-17T01:56:13+07:00 | target=jump:172.20.40.11
+Warning: Permanently added '172.20.40.11' (ED25519) to the list of known hosts.
+=== DB FAILOVER STEP 2: promote STANDBY (.11) and write data ===
++ echo '=== DB FAILOVER STEP 2: promote STANDBY (.11) and write data ==='
++ date -Is
+2026-11-17T01:56:15+07:00
+db-primary
+before pg_is_in_recovery = + hostname
++ echo -n 'before pg_is_in_recovery = '
++ sudo -n -u postgres psql -tAc 'select pg_is_in_recovery()'
+t
+--- promote ---
++ echo '--- promote ---'
++ sudo -n -u postgres psql -tAc 'select pg_promote(wait => true, wait_seconds => 30)'
+t
+after  pg_is_in_recovery = f
+--- write to promoted node as app_user ---
++ echo -n 'after  pg_is_in_recovery = '
++ sudo -n -u postgres psql -tAc 'select pg_is_in_recovery()'
++ echo '--- write to promoted node as app_user ---'
++ sudo -n -u postgres psql -d ha_lab_db -qtAc 'SET ROLE app_user; INSERT INTO health_checks(node_name,status) VALUES ('\''SB-DB-FAILOVER'\'','\''OK'\'') RETURNING '\''inserted_id='\''||id;'
+inserted_id=148
+END=2026-11-17T01:56:14+07:00

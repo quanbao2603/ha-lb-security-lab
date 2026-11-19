@@ -1,0 +1,24 @@
+Warning: Permanently added '172.20.40.11' (ED25519) to the list of known hosts.
+Linux db-primary 6.1.0-54-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.190-1 (2026-10-16) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Thu Nov 12 22:24:57 2026 from 172.20.50.10
+set +e; date -Is; hostname; echo '--- INSERT as app_user ---'; PGPASSWORD='DemoPass123!' psql -P pager=off -U app_user -d ha_lab_db -c "INSERT INTO health_checks(node_name,status) VALUES ('SB-LEAST-PRIV','OK') RETURNING id;"; echo '--- DELETE as app_user (must deny) ---'; PGPASSWORD='DemoPass123!' psql -P pager=off -U app_user -d ha_lab_db -c "DELETE FROM health_checks WHERE node_name='SB-LEAST-PRIV';"
+[?2004h]0;ops@db-primary: ~[01;32mops@db-primary[00m:[01;34m~[00m$ set +e; date -Is; hostname; echo '--- INSERT as app_user ---'; PGPASSWORD='DemoPass123!' psql -P pager=off -U app_user -d ha_lab_db -c "INSERT INTO health_checks(node_name,status) VALUES ('SB-LEAST-PRIV','OK') RETURNING id;"; echo '--- DELETE as app_user (must deny) ---'; PGPASSWORD='DemoPass123!' psql -P pager=off -U app_user -d ha_lab_db -c "DELETE FROM health_checks WHERE node_name='SB-LEAST-PRIV';"
+[?2004l2026-11-12T22:27:00+07:00
+db-primary
+--- INSERT as app_user ---
+ id 
+----
+ 77
+(Connection to 172.20.40.11 closed by remote host.
+Connection to 172.20.40.11 closed.
+client_loop: send disconnect: Broken pipe
+b-primary: ~[01;32mops@db-primary[00m:[01;34m~[00m$ Connection to 172.20.40.11 closed by remote host.
+Connection to 172.20.40.11 closed.
+client_loop: send disconnect: Broken pipe

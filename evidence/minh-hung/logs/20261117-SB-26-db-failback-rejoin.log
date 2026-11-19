@@ -1,0 +1,31 @@
+### EV17-SB-26 | db-failback-rejoin | 2026-11-17T02:25:36+07:00 | target=jump:172.20.40.11
+Warning: Permanently added '172.20.40.11' (ED25519) to the list of known hosts.
+=== DB FAILBACK 2/3: rejoin .11 as STANDBY ===
++ echo '=== DB FAILBACK 2/3: rejoin .11 as STANDBY ==='
++ date -Is
+2026-11-17T02:25:38+07:00
+db-primary
++ hostname
++ sudo -n pg_lsclusters
++ sed -n 1,2p
+Ver Cluster Port Status                  Owner    Data directory              Log file
+15  main    5432 online                  postgres /var/lib/postgresql/15/main syslog
++ sudo -n systemctl stop postgresql
++ sudo -n sh -c 'rm -rf /var/lib/postgresql/15/main/*'
+files_left=0
+--- pg_basebackup from .12 (renamed from .11 -> .12) ---
+++ wc -l
+++ sudo -n find /var/lib/postgresql/15/main -mindepth 1
++ echo files_left=0
++ echo '--- pg_basebackup from .12 (renamed from .11 -> .12) ---'
++ tail -3
++ sudo -n -u postgres /usr/lib/postgresql/15/bin/pg_basebackup -h 172.20.40.12 -p 5432 -U repl_user -D /var/lib/postgresql/15/main -Fp -Xs -P -R
+waiting for checkpoint
+30640/30640 kB (100%), 0/1 tablespace
+30640/30640 kB (100%), 1/1 tablespace
++ sudo -n systemctl start postgresql
++ sleep 3
+pg_is_in_recovery = + echo -n 'pg_is_in_recovery = '
++ sudo -n -u postgres psql -tAc 'select pg_is_in_recovery()'
+t
+END=2026-11-17T02:25:44+07:00

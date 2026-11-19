@@ -1,0 +1,63 @@
+VRRP UNICAST - EVIDENCE CHAIN (after host reboot)
+==================================================
+Captured from real SSH sessions in a live console window.
+Screenshots: evidence/minh-hung/images/20261116-minh-hung-vrrp-{1..4}*.png
+
+Step 1 BASELINE  2026-11-16
+  fw-a keepalived=active nftables=active VIP_COUNT=5
+    eth0 172.20.10.2/24 172.20.10.1/24
+    eth1 172.20.20.2/24 172.20.20.1/24
+    eth2 172.20.30.2/24 172.20.30.1/24
+    eth3 172.20.40.2/24 172.20.40.1/24
+    eth4 172.20.50.2/24 172.20.50.1/24
+  fw-b keepalived=active nftables=active VIP_COUNT=0
+RESULT: fw-a MASTER owns 5 VIP, fw-b BACKUP owns 0
+
+Step 2 FAILOVER  19:25:43 -> 19:25:48 (5s observation)
+  ssh ops@172.20.50.2 "sudo systemctl stop keepalived"
+  fw-a keepalived=inactive VIP_COUNT=0
+  fw-b keepalived=active nftables=active VIP_COUNT=5
+    eth0 172.20.10.3/24 172.20.10.1/24
+    eth1 172.20.20.3/24 172.20.20.1/24
+    eth2 172.20.30.3/24 172.20.30.1/24
+    eth3 172.20.40.3/24 172.20.40.1/24
+    eth4 172.20.50.3/24 172.20.50.1/24
+  fw-b journal:
+    19:25:44 (VI_40) Entering MASTER STATE
+    19:25:44 VRRP_Group(VG_FW) Syncing instances to MASTER state
+    19:25:44 (VI_10) (VI_20) (VI_30) (VI_50) Entering MASTER STATE
+  No ip addr add executed by the operator.
+RESULT: fw-b took all 5 VIP automatically
+
+Step 3 FAILBACK  19:26:39
+  ssh ops@172.20.50.2 "sudo systemctl start keepalived"
+  fw-a keepalived=active VIP_COUNT=5
+    eth0 172.20.10.2/24 172.20.10.1/24
+    eth1 172.20.20.2/24 172.20.20.1/24
+    eth2 172.20.30.2/24 172.20.30.1/24
+    eth3 172.20.40.2/24 172.20.40.1/24
+    eth4 172.20.50.2/24 172.20.50.1/24
+  fw-a journal:
+    19:26:40 (VI_10)(VI_20)(VI_30) Entering BACKUP STATE
+    19:26:43 (VI_40) Entering MASTER STATE
+    19:26:43 VRRP_Group(VG_FW) Syncing instances to MASTER state
+  fw-b keepalived=active VIP_COUNT=0
+    19:26:43 (VI_10)(VI_20)(VI_30) Entering BACKUP STATE
+  fw-a keepalived_cfg=OK  nft_cfg=OK
+  fw-b keepalived_cfg=OK  nft_cfg=OK
+RESULT: fw-a reclaimed all 5 VIP, fw-b back to BACKUP
+
+Step 4 POSTGRESQL + SYSLOG  19:27:20
+  .12 (Primary):
+    client_addr  | state     | sync_state
+    172.20.40.11 | streaming | async
+    slot_name     | active
+    replica_slot_1| t
+    pg_is_in_recovery = f
+  .11 (Standby):
+    pg_is_in_recovery = t
+    pg_last_wal_replay_lsn = 0/E000318
+  Log-Monitor:
+    udp 172.20.50.10:514  rsyslogd
+    tcp 172.20.50.10:514  LISTEN rsyslogd
+RESULT: streaming async .12 -> .11 confirmed, syslog listener active

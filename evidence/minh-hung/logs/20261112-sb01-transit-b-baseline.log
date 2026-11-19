@@ -1,0 +1,45 @@
+Warning: Permanently added '172.20.20.6' (ED25519) to the list of known hosts.
+Linux transit-b 6.1.0-54-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.190-1 (2026-10-16) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Sun Nov  8 10:19:55 2026 from 172.20.50.254
+date -Is
+hostname
+ip -br addr
+ip route
+cat /proc/sys/net/ipv4/ip_forward
+tailscale status
+[?2004h]0;ops@transit-b: ~[01;32mops@transit-b[00m:[01;34m~[00m$ date -Is
+[?2004l2026-11-12T21:40:10+07:00
+[?2004h]0;ops@transit-b: ~[01;32mops@transit-b[00m:[01;34m~[00m$ hostname
+[?2004ltransit-b
+[?2004h]0;ops@transit-b: ~[01;32mops@transit-b[00m:[01;34m~[00m$ ip -br addr
+[?2004llo               UNKNOWN        127.0.0.1/8 ::1/128 
+eth0             UP             172.20.20.6/24 fe80::20c:29ff:fe6c:3e59/64 
+eth1             UP             192.168.30.128/24 metric 1024 fe80::20c:29ff:fe6c:3e63/64 
+tailscale0       UNKNOWN        100.64.115.23/32 fd7a:115c:a1e0::1936:7318/128 fe80::f4cd:b1a7:913e:6770/64 
+[?2004h]0;ops@transit-b: ~[01;32mops@transit-b[00m:[01;34m~[00m$ ip route
+[?2004ldefault via 192.168.30.2 dev eth1 proto dhcp src 192.168.30.128 metric 1024 
+172.20.0.0/16 via 172.20.20.1 dev eth0 proto static 
+172.20.20.0/24 dev eth0 proto kernel scope link src 172.20.20.6 
+192.168.30.0/24 dev eth1 proto kernel scope link src 192.168.30.128 metric 1024 
+192.168.30.2 dev eth1 proto dhcp scope link src 192.168.30.128 metric 1024 
+[?2004h]0;ops@transit-b: ~[01;32mops@transit-b[00m:[01;34m~[00m$ cat /proc/sys/net/ipv4/ip_forward
+[?2004l1
+[?2004h]0;ops@transit-b: ~[01;32mops@transit-b[00m:[01;34m~[00m$ tailscale status
+[?2004l100.64.115.23   transit-b        athenaedu01@  linux    -  
+100.82.115.17   desktop-ni199v3  athenaedu01@  windows  -  
+100.76.150.63   iphone           athenaedu01@  windows  -  
+100.99.198.105  transit-a        athenaedu01@  linux    -  
+
+# Health check:
+#     - Tailscale failed to fetch the DNS configuration of your device: exit status 1
+#     - exit status 1
+[?2004h]0;ops@transit-b: ~[01;32mops@transit-b[00m:[01;34m~[00m$ Connection to 172.20.20.6 closed by remote host.
+Connection to 172.20.20.6 closed.
+client_loop: send disconnect: Broken pipe

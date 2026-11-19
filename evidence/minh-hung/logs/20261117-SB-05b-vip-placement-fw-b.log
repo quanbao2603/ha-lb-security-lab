@@ -1,0 +1,21 @@
+### EV17-SB-05b | vip-placement-fw-b | 2026-11-17T01:02:50+07:00 | target=172.20.50.3
+Warning: Permanently added '172.20.50.3' (ED25519) to the list of known hosts.
+=== VIP placement: Firewall-B ===
++ echo '=== VIP placement: Firewall-B ==='
++ date -Is
+2026-11-17T01:02:51+07:00
++ hostname
+fw-b
+++ systemctl is-active keepalived
+keepalived=active
+--- VIP .1 on each zone interface (expect none) ---
++ echo keepalived=active
++ echo '--- VIP .1 on each zone interface (expect none) ---'
++ grep -c secondary
++ ip -4 -br addr show
+0
+++ grep -c secondary
+++ ip -4 addr show
+VIP_COUNT=0
++ echo VIP_COUNT=0
+END=2026-11-17T01:02:51+07:00

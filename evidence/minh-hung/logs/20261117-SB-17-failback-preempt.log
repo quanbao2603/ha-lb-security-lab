@@ -1,0 +1,36 @@
+### EV17-SB-17 | failback-preempt | 2026-11-17T02:47:22+07:00 | target=172.20.50.2
+Warning: Permanently added '172.20.50.2' (ED25519) to the list of known hosts.
++ echo '=== FAILBACK: restart Keepalived on Firewall-A (preemption) ==='
+=== FAILBACK: restart Keepalived on Firewall-A (preemption) ===
++ date -Is
+2026-11-17T02:47:24+07:00
++ hostname
+fw-a
+--- before: A has 0 VIP (B is MASTER) ---
++ echo '--- before: A has 0 VIP (B is MASTER) ---'
+++ grep -c secondary
+++ ip -4 addr show
+a_vip=0
+--- starting keepalived on A ---
++ echo a_vip=0
++ echo '--- starting keepalived on A ---'
++ sudo -n systemctl start keepalived
++ sleep 5
+--- after: A preempts back (priority 150 > 100) ---
++ echo '--- after: A preempts back (priority 150 > 100) ---'
+++ systemctl is-active keepalived
+++ grep -c secondary
+++ ip -4 addr show
+a_keepalived=active a_vip=5
++ echo 'a_keepalived=active a_vip=5'
++ grep secondary
++ ip -4 -br addr show
+--- config validation both nodes ---
++ echo '--- config validation both nodes ---'
++ sudo -n keepalived -t -f /etc/keepalived/keepalived.conf
+a_keepalived_cfg_exit=0
++ echo a_keepalived_cfg_exit=0
++ sudo -n nft -c -f /etc/nftables.conf
+a_nft_cfg_exit=0
++ echo a_nft_cfg_exit=0
+END=2026-11-17T02:47:28+07:00

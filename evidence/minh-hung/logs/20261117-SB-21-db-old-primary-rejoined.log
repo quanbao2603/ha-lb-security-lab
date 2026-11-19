@@ -1,0 +1,39 @@
+### EV17-SB-21 | db-old-primary-rejoined | 2026-11-17T01:58:31+07:00 | target=jump:172.20.40.12
+Warning: Permanently added '172.20.40.12' (ED25519) to the list of known hosts.
+=== DB FAILOVER STEP 3: rejoin old primary (.12) as STANDBY ===
++ echo '=== DB FAILOVER STEP 3: rejoin old primary (.12) as STANDBY ==='
++ date -Is
+2026-11-17T01:58:33+07:00
+db-replica
+--- cluster layout (postgresql 15) ---
+Ver Cluster Port Status                Owner    Data directory              Log file
+15  main    5432 down                  postgres /var/lib/postgresql/15/main syslog
+16  main    5432 down,binaries_missing postgres /var/lib/postgresql/15/main syslog
+--- stop + wipe old data dir ---
++ hostname
++ echo '--- cluster layout (postgresql 15) ---'
++ sudo -n pg_lsclusters
++ sed -n 1,3p
++ echo '--- stop + wipe old data dir ---'
++ sudo -n systemctl stop postgresql
+files_left=0
+--- pg_basebackup from NEW primary .11 ---
++ sudo -n sh -c 'rm -rf /var/lib/postgresql/15/main/*'
+++ wc -l
+++ sudo -n find /var/lib/postgresql/15/main -mindepth 1
++ echo files_left=0
++ echo '--- pg_basebackup from NEW primary .11 ---'
++ sudo -n -u postgres /usr/lib/postgresql/15/bin/pg_basebackup -h 172.20.40.11 -p 5432 -U repl_user -D /var/lib/postgresql/15/main -Fp -Xs -P -R
++ tail -4
+ 4242/30630 kB (13%), 0/1 tablespace
+21609/30630 kB (70%), 0/1 tablespace
+30640/30640 kB (100%), 0/1 tablespace
+30640/30640 kB (100%), 1/1 tablespace
+--- start as standby ---
++ echo '--- start as standby ---'
++ sudo -n systemctl start postgresql
++ sleep 3
+pg_is_in_recovery = + echo -n 'pg_is_in_recovery = '
++ sudo -n -u postgres psql -tAc 'select pg_is_in_recovery()'
+t
+END=2026-11-17T01:58:42+07:00
