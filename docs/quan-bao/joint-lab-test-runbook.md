@@ -1,8 +1,10 @@
-# Kịch bản kiểm thử chung Site A – Site B (Runbook + chụp evidence)
+# Kịch bản triển khai lab chung Site A – Site B (Runbook + chụp evidence)
 
-> **Người thực hiện chính:** Quan Bảo (thao tác từ Windows của Bảo).
-> **Người hỗ trợ:** Minh Hùng (bật VM Site B, mở rule tạm, xác nhận policy).
-> **Ngày lập:** 2026-11-10. **Trạng thái:** đường truy cập đã xác minh sống (xem mục 1.2).
+> **Loại tài liệu:** kịch bản triển khai CHUNG giữa hai site — gửi cho cả Bảo và Hùng.
+> **Người thao tác chính:** Quan Bảo (từ Windows máy Bảo, qua kênh LAN portproxy đã kiểm chứng).
+> **Người phía Site B:** Minh Hùng (bật VM, xác nhận policy/cơ chế HA, gỡ rule tạm, chụp ảnh SB theo file kịch bản Site B).
+> **Ngày lập:** 2026-11-10. **Bản v2:** cập nhật đường truy cập LAN portproxy, kênh bridge/PAL-v2, và GAP keepalived phát hiện trong phiên tích hợp.
+> **Tài liệu liên quan:** `site-b-comprehensive-scenario.md` — kịch bản chi tiết 20 mốc SB-01..SB-20 riêng Site B, có mốc chụp ảnh cho Hùng. Khi chạy chung: batch 1–4 dưới đây là trình tự chính; các mốc SB là phần việc nền của Hùng trước giờ chạy chung.
 > **Phạm vi:** phần tích hợp chung — KHÔNG làm lại các test riêng Site A đã có evidence.
 
 ---
@@ -29,6 +31,12 @@
 - Không commit/push khi chưa được Bảo duyệt. Bảo tự push.
 - Commit message ngắn 1–2 dòng, ví dụ: `evidence(quan-bao): add joint Site A-B integration test screenshots`.
 
+### 0.4 Phối hợp giữa hai AI (cập nhật v2)
+
+- Bridge Site B: `http://192.168.1.26:8080/status` và `POST /messages` — nội dung gửi **không dấu** để tránh lỗi bảng mã.
+- PAL-v2 giữa hai máy host: `--status`, `--handshake`, `--presence`, `--send`, `--rpc`.
+- Đầu mỗi batch: gửi `test_start`; cuối mỗi batch: gửi `test_result` để AI Hùng đối soát log thời gian thực; hai bên chốt PASS/GAP qua bridge **trước khi** ghi evidence.
+
 ---
 
 ## 1. Chuẩn bị
@@ -44,28 +52,42 @@
 
 Nhắn Hùng trước: *"Anh bật giúp em DB-Replica với Firewall-B khi em xong batch 1 nhé."*
 
-### 1.2 Đường truy cập SSH (đã xác minh từ Windows của Bảo)
+### 1.2 Đường truy cập SSH (v2 — ưu tiên kênh LAN portproxy)
 
 Key `qoder-local` của Bảo đã được Hùng add vào `authorized_keys` của `ops` trên toàn bộ VM Site B.
 
+**Đường chính (đã kiểm chứng 2026-11-10, ổn định):** portproxy trên máy Hùng `192.168.1.26` → Transit-B.
+
 | Đích | Lệnh từ Windows | Ghi chú |
 |---|---|---|
-| Transit-B | `ssh ops@172.20.20.6` | Trực tiếp, đã test OK |
-| Log-Monitor | `ssh -J ops@172.20.20.6 ops@172.20.50.10` | Hùng mở rule tạm `[FW-ALLOW-SITE-A-JUMP:]` |
-| Firewall-A | `ssh -J ops@172.20.20.6,ops@172.20.50.10 ops@172.20.50.2` | Nhảy kép, source cuối thuộc MGMT |
-| Firewall-B | `ssh -J ops@172.20.20.6,ops@172.20.50.10 ops@172.20.50.3` | Chỉ khi Firewall-B bật |
-| DB-Primary | `ssh -J ops@172.20.20.6,ops@172.20.50.10 ops@172.20.40.11` | |
-| DB-Replica | `ssh -J ops@172.20.20.6,ops@172.20.50.10 ops@172.20.40.12` | Chỉ khi DB-Replica bật |
+| Transit-B | `ssh -p 2222 ops@192.168.1.26` | Portproxy LAN, không phụ thuộc Tailscale của VM |
+| Log-Monitor | `ssh -J ops@192.168.1.26:2222 ops@172.20.50.10` | Jump 1 chặng; Hùng đã mở rule `[FW-ALLOW-SITE-A-JUMP:]` |
+| Firewall-A | `ssh -J ops@192.168.1.26:2222,ops@172.20.50.10 ops@172.20.50.2` | Jump 2 chặng, source cuối thuộc MGMT |
+| Firewall-B | `ssh -J ops@192.168.1.26:2222,ops@172.20.50.10 ops@172.20.50.3` | Chỉ khi Firewall-B bật |
+| DB-Primary | `ssh -J ops@192.168.1.26:2222,ops@172.20.50.10 ops@172.20.40.11` | |
+| DB-Replica | `ssh -J ops@192.168.1.26:2222,ops@172.20.50.10 ops@172.20.40.12` | Chỉ khi DB-Replica bật |
 | VM Site A | `ssh quanbao2603@172.20.21.5` (Transit-A)… | Dùng mật khẩu/key thường dùng của Bảo; key `qoder-local` CHƯA được authorize trên Site A |
 
-Quy tắc zero-trust TB-05: SSH vào Firewall/DB chỉ接受 source dải MGMT `172.20.50.0/24`. Vì vậy **không** SSH thẳng từ Windows vào `50.2`/`40.x` — bị DROP đúng thiết kế (dùng làm negative test).
+**Đường phụ (fallback):** `ssh ops@172.20.20.6` qua Tailscale subnet route — từng chập chờn khi tailscaled trên Transit-B treo; chỉ dùng khi portproxy không sẵn sàng.
 
-**Việc cần Hùng làm trước batch 3:** đồng bộ rule tạm `[FW-ALLOW-SITE-A-JUMP:]` sang Firewall-B, nếu không trong lúc failover sẽ không nhảy kép vào trong được. Sau khi kết thúc toàn bộ kịch bản, Hùng gỡ rule tạm trên cả hai firewall.
+Hai lưu ý kỹ thuật:
+
+- Không đặt jump trùng với đích (dùng `-J ...ops@172.20.50.10` rồi SSH vào chính `172.20.50.10`) — OpenSSH báo `jumphost loop`; Log-Monitor chỉ cần jump 1 chặng.
+- Quy tắc zero-trust TB-05: SSH thẳng từ Windows vào `50.2`/`40.x` bị DROP **đúng thiết kế** — giữ làm negative evidence, không phải lỗi cần sửa.
+
+**Checklist chuẩn bị phía Hùng trước giờ chạy chung:**
+
+1. Bật 4 VM batch 1: Transit-B, Firewall-A, DB-Primary, Log-Monitor.
+2. Giữ portproxy sống: `netsh interface portproxy show all` phải có `:2222 → Transit-B:22` và `:8080 → bridge`; firewall Windows của Hùng cho inbound 2222/8080.
+3. Bridge `GET /status` trả `ready`; PAL-v2 `--handshake` trạng thái ESTABLISHED.
+4. Xác nhận cơ chế HA firewall thực tế (mục 1.3 — keepalived chưa tồn tại trên cả hai FW).
+5. Trước batch 2/3: bật DB-Replica + Firewall-B, đồng bộ rule `[FW-ALLOW-SITE-A-JUMP:]` sang Firewall-B. Sau toàn bộ kịch bản: gỡ rule tạm trên cả hai firewall.
 
 ### 1.3 Khoảng trống tích hợp đã biết (không phải lỗi để sửa)
 
 - `VIP 172.20.20.100` (DMZ Site B) **chưa có service web phía sau** — evidence của Hùng cũng ghi `[WARN] Không kết nối được VIP 172.20.20.100:80`. KHÔNG dùng làm positive test. Positive web dùng VIP Site A `172.20.21.100` (đã có evidence riêng). Ghi nhận vào acceptance matrix là hạng mục tích hợp còn mở.
 - `172.20.20.21/22` (Web theo spec gốc) không tồn tại trong triển khai thực tế — bỏ qua các probe tới IP này.
+- `keepalived.service` **không tồn tại trên cả Firewall-A lẫn Firewall-B** (kiểm chứng 2026-11-10: `Unit keepalived.service could not be found`); VIP gateway `.1` đang gán tĩnh trên Firewall-A. J-11/J-12 chỉ chạy sau khi Hùng xác nhận hoặc cài cơ chế HA; nếu chưa, ghi GAP vào acceptance matrix, không tính FAIL.
 
 ### 1.4 [CHỤP ẢNH C-01] Transit-A nhận route Site B
 
@@ -92,7 +114,7 @@ Kỳ vọng: route `172.20.40.0/24` hiện qua `tailscale0`; ping `0% packet los
 **Chạy trên Windows (CMD/PowerShell):**
 
 ```cmd
-ssh -J ops@172.20.20.6 ops@172.20.50.10 hostname
+ssh -J ops@192.168.1.26:2222 ops@172.20.50.10 hostname
 ```
 
 Kỳ vọng: `log-monitor`, exit 0.
@@ -106,7 +128,7 @@ Kỳ vọng: `log-monitor`, exit 0.
 **Chạy trên Windows:**
 
 ```cmd
-ssh -J ops@172.20.20.6,ops@172.20.50.10 ops@172.20.50.2 "sudo journalctl -k --since '10 minutes ago' --no-pager | grep FW-ALLOW-SITE-A-JUMP | tail -5"
+ssh -J ops@192.168.1.26:2222,ops@172.20.50.10 ops@172.20.50.2 "sudo journalctl -k --since '10 minutes ago' --no-pager | grep FW-ALLOW-SITE-A-JUMP | tail -5"
 ```
 
 Kỳ vọng: các dòng `[FW-ALLOW-SITE-A-JUMP:]` khớp thời điểm J-01.
@@ -118,10 +140,10 @@ Kỳ vọng: các dòng `[FW-ALLOW-SITE-A-JUMP:]` khớp thời điểm J-01.
 ### J-03 — Route không bypass firewall trên Transit-B
 
 ```cmd
-ssh ops@172.20.20.6 "ip route show 172.20.40.0/24; ip route show 172.20.50.0/24; cat /proc/sys/net/ipv4/ip_forward"
+ssh -p 2222 ops@192.168.1.26 "ip route show 172.20.40.0/24; ip route show 172.20.50.0/24; cat /proc/sys/net/ipv4/ip_forward"
 ```
 
-Kỳ vọng: hai route `via 172.20.20.1 dev eth0`; `ip_forward = 1`.
+Kỳ vọng: `ip_forward = 1`. Lưu ý thực tế (v2): hai lệnh `ip route show <subnet>` có thể trả rỗng vì Transit-B dùng route tổng hợp `172.20.0.0/16 via 172.20.20.1` — chụp thêm `ip route | grep 172.20` để thấy route tổng hợp; điều này vẫn chứng minh mọi lưu lượng vào DB/MGMT bắt buộc qua firewall.
 
 **[CHỤP ẢNH J-03]** — thấy cả hai route đi qua gateway firewall.
 **Tên file:** `20261110-quan-bao-joint-transit-b-routes.png`
@@ -130,7 +152,7 @@ Kỳ vọng: hai route `via 172.20.20.1 dev eth0`; `ip_forward = 1`.
 ### J-04 — Firewall policy + VIP trên Firewall-A
 
 ```cmd
-ssh -J ops@172.20.20.6,ops@172.20.50.10 ops@172.20.50.2 "sudo systemctl is-active nftables keepalived; sudo nft list ruleset | grep -E 'policy drop|FW-' | head -25; ip -br addr | grep -E '172\.20\.(10|20|30|40|50)\.1/'"
+ssh -J ops@192.168.1.26:2222,ops@172.20.50.10 ops@172.20.50.2 "sudo systemctl is-active nftables keepalived; sudo nft list ruleset | grep -E 'policy drop|FW-' | head -25; ip -br addr | grep -E '172\.20\.(10|20|30|40|50)\.1/'"
 ```
 
 Kỳ vọng: `active` (cả hai service); `policy drop`; đủ prefix `FW-ALLOW-WAN-VIP`, `FW-DENY-WAN-DIRECT`, `FW-DENY-WAN-DB`, `FW-ALLOW-MGMT-SSH`, `FW-DEFAULT-DENY`…; các IP gateway `.1` nằm trên Firewall-A.
@@ -151,7 +173,7 @@ Kỳ vọng: `False` (DB không thể chạm từ ngoài MGMT).
 **CMD (thử SSH password — nhập một mật khẩu sai bất kỳ khi được hỏi):**
 
 ```cmd
-ssh -o PreferredAuthentications=password -o PubkeyAuthentication=no ops@172.20.20.6
+ssh -p 2222 -o PreferredAuthentications=password -o PubkeyAuthentication=no ops@192.168.1.26
 ```
 
 Kỳ vọng: `Permission denied (publickey)` hoặc `Permission denied (password)` — hardening key-only hoạt động.
@@ -163,7 +185,7 @@ Kỳ vọng: `Permission denied (publickey)` hoặc `Permission denied (password
 ### J-06 — Log deny trên Firewall-A khớp J-05
 
 ```cmd
-ssh -J ops@172.20.20.6,ops@172.20.50.10 ops@172.20.50.2 "sudo journalctl -k --since '2 minutes ago' --no-pager | grep -E 'FW-DENY|FW-DEFAULT' | tail -5"
+ssh -J ops@192.168.1.26:2222,ops@172.20.50.10 ops@172.20.50.2 "sudo journalctl -k --since '2 minutes ago' --no-pager | grep -E 'FW-DENY|FW-DEFAULT' | tail -5"
 ```
 
 Kỳ vọng: dòng deny tới `172.20.40.11:5432` (hoặc default deny) khớp thời điểm J-05.
@@ -185,7 +207,7 @@ Mở **hai cửa sổ terminal** trên Windows.
 Cửa sổ 1 — DB-Primary:
 
 ```cmd
-ssh -J ops@172.20.20.6,ops@172.20.50.10 ops@172.20.40.11
+ssh -J ops@192.168.1.26:2222,ops@172.20.50.10 ops@172.20.40.11
 ```
 
 ```bash
@@ -196,7 +218,7 @@ sudo -u postgres psql -d ha_lab_db -c "SELECT id,node_name,status FROM health_ch
 Cửa sổ 2 — DB-Replica:
 
 ```cmd
-ssh -J ops@172.20.20.6,ops@172.20.50.10 ops@172.20.40.12
+ssh -J ops@192.168.1.26:2222,ops@172.20.50.10 ops@172.20.40.12
 ```
 
 ```bash
@@ -298,24 +320,24 @@ Kỳ vọng: `pg_basebackup` hoàn tất; `pg_is_in_recovery()` = `t` (node cũ 
 
 ## 4. Batch 3 — Firewall failover & failback
 
-**Điều kiện tiên quyết:** Hùng đã bật Firewall-B và đồng bộ rule tạm `[FW-ALLOW-SITE-A-JUMP:]` sang Firewall-B.
+**Điều kiện tiên quyết:** (1) Hùng đã bật Firewall-B, đồng bộ rule tạm `[FW-ALLOW-SITE-A-JUMP:]` sang Firewall-B và nhảy kép vào Firewall-B thành công. (2) Hùng đã xác nhận cơ chế HA firewall thực tế (mục 1.3: keepalived hiện CHƯA tồn tại trên cả hai FW). Nếu (2) chưa đạt: **bỏ qua batch 3**, ghi GAP vào acceptance matrix, không chạy các lệnh stop/start dưới đây.
 
 ### J-11 — Failover: Firewall-A ngã, Firewall-B tiếp quản VIP .1
 
 **Bước 1 — Windows:** ghi T0 (`Get-Date -Format o`).
 
-**Bước 2 — Firewall-A:**
+**Bước 2 — Firewall-A:** nếu cơ chế HA là keepalived:
 
 ```cmd
-ssh -J ops@172.20.20.6,ops@172.20.50.10 ops@172.20.50.2 "sudo systemctl stop keepalived; systemctl is-active keepalived"
+ssh -J ops@192.168.1.26:2222,ops@172.20.50.10 ops@172.20.50.2 "sudo systemctl stop keepalived; systemctl is-active keepalived"
 ```
 
-Kỳ vọng: `inactive`.
+Kỳ vọng: `inactive`. Nếu unit không tồn tại (trạng thái hiện tại theo 1.3), Hùng dừng VIP theo cơ chế đã xác nhận hoặc thực hiện thủ công `ip addr del` + `arping` theo `lab/firewall/failover-and-recovery-runbook.md`, và ghi rõ cơ chế dùng vào evidence.
 
 **Bước 3 — Firewall-B:**
 
 ```cmd
-ssh -J ops@172.20.20.6,ops@172.20.50.10 ops@172.20.50.3 "ip -br addr | grep -E '172\.20\.(10|20|30|40|50)\.1/'; sudo systemctl is-active nftables; sudo nft list ruleset | grep -c 'FW-'"
+ssh -J ops@192.168.1.26:2222,ops@172.20.50.10 ops@172.20.50.3 "ip -br addr | grep -E '172\.20\.(10|20|30|40|50)\.1/'; sudo systemctl is-active nftables; sudo nft list ruleset | grep -c 'FW-'"
 ```
 
 Kỳ vọng: các gateway `.1` xuất hiện trên Firewall-B; `nftables active`; số rule `FW-` > 0 (policy đầy đủ, không hở).
@@ -339,7 +361,7 @@ Kỳ vọng: `False`. Ghi T1.
 **Firewall-A:**
 
 ```cmd
-ssh -J ops@172.20.20.6,ops@172.20.50.10 ops@172.20.50.2 "sudo systemctl start keepalived; sleep 3; ip -br addr | grep -E '172\.20\.(10|20|30|40|50)\.1/'"
+ssh -J ops@192.168.1.26:2222,ops@172.20.50.10 ops@172.20.50.2 "sudo systemctl start keepalived; sleep 3; ip -br addr | grep -E '172\.20\.(10|20|30|40|50)\.1/'"
 ```
 
 Kỳ vọng: `.1` quay lại Firewall-A (keepalived priority cao hơn/preempt). Nếu không quay lại: trên Firewall-B `sudo systemctl stop keepalived` rồi kiểm tra lại Firewall-A.
@@ -356,7 +378,7 @@ Kỳ vọng: `.1` quay lại Firewall-A (keepalived priority cao hơn/preempt). 
 ### J-13 — Central syslog trên Log-Monitor
 
 ```cmd
-ssh -J ops@172.20.20.6 ops@172.20.50.10 "ls -lh /var/log/central/; sudo tail -n 30 /var/log/central/firewall-a/kernel.log"
+ssh -J ops@192.168.1.26:2222 ops@172.20.50.10 "ls -lh /var/log/central/; sudo tail -n 30 /var/log/central/firewall-a/kernel.log"
 ```
 
 Kỳ vọng: thư mục central có log firewall-a; các dòng `FW-DENY`/`FW-ALLOW-SITE-A-JUMP` timestamp khớp các bước J-05/J-06/J-11.
@@ -391,6 +413,7 @@ Kỳ vọng: thư mục central có log firewall-a; các dòng `FW-DENY`/`FW-ALL
 | Nhảy kép chết trong lúc firewall failover | Rule tạm thiếu trên Firewall-B | Hùng đồng bộ rule tạm sang FW-B |
 | `sudo` hỏi mật khẩu trong lệnh one-liner | Lệnh chạy không tương tác | Đăng nhập phiên SSH riêng rồi chạy lệnh sudo trong phiên đó |
 | VIP không chuyển khi stop keepalived | Keepalived chưa quản lý VIP trên node đó | Dùng quy trình thủ công ip addr + arping trong firewall runbook, nhờ Hùng thao tác |
+| Portproxy 2222/8080 không trả lời | Máy Hùng chưa bật portproxy hoặc firewall Windows chặn inbound | Hùng: `netsh interface portproxy show all`, kiểm tra inbound 2222/8080; tạm chuyển sang đường phụ `ssh ops@172.20.20.6` |
 
 ---
 
@@ -414,6 +437,8 @@ Kỳ vọng: thư mục central có log firewall-a; các dòng `FW-DENY`/`FW-ALL
 | J-11b | `20261110-quan-bao-joint-fw-failover-client-negative.png` |
 | J-12 | `20261110-quan-bao-joint-fw-failback.png` |
 | J-13 | `20261110-quan-bao-joint-central-syslog.png` |
+
+Ảnh phía Hùng KHÔNG nằm trong bảng trên: Hùng chụp theo các mốc `[CHỤP ẢNH SB-01..SB-20]` trong `site-b-comprehensive-scenario.md`, lưu tại `evidence/minh-hung/images/` với tên `YYYYMMDD-minh-hung-sb<id>-<ten-ngan>.png`.
 
 ## Phụ lục B — Template biên bản evidence
 
